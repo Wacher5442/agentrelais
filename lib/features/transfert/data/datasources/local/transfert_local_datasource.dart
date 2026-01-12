@@ -1,0 +1,79 @@
+import 'dart:convert';
+import 'dart:developer';
+
+import '../../../../../core/db/db_helper.dart';
+import '../../models/transfert_model.dart';
+
+abstract class TransfertLocalDataSource {
+  Future<void> insertTransfert(TransfertModel transfert);
+  Future<void> updateStatus(String submissionId, String status);
+  Future<void> updatePartsInfo(
+    String submissionId,
+    int totalParts,
+    int partsSent,
+  );
+  Future<List<TransfertModel>> getAllTransferts();
+  Future<List<TransfertModel>> getPendingTransferts();
+}
+
+class TransfertLocalDataSourceImpl implements TransfertLocalDataSource {
+  final DbHelper dbHelper;
+
+  TransfertLocalDataSourceImpl(this.dbHelper);
+
+  @override
+  Future<void> insertTransfert(TransfertModel transfert) async {
+    log('================ INSERT TRANSFERT (LOCAL DB) =================');
+
+    final map = transfert.toMap();
+    log(const JsonEncoder.withIndent('  ').convert(map));
+
+    log('==============================================================');
+
+    await dbHelper.insert('transferts', transfert.toMap());
+  }
+
+  @override
+  Future<void> updateStatus(String submissionId, String status) async {
+    await dbHelper.update(
+      'transferts',
+      {'status': status, 'updatedAt': DateTime.now().millisecondsSinceEpoch},
+      'submissionId = ?',
+      [submissionId],
+    );
+  }
+
+  @override
+  Future<void> updatePartsInfo(
+    String submissionId,
+    int totalParts,
+    int partsSent,
+  ) async {
+    await dbHelper.update(
+      'transferts',
+      {
+        'totalParts': totalParts,
+        'partsSent': partsSent,
+        'updatedAt': DateTime.now().millisecondsSinceEpoch,
+      },
+      'submissionId = ?',
+      [submissionId],
+    );
+  }
+
+  @override
+  Future<List<TransfertModel>> getAllTransferts() async {
+    final rows = await dbHelper.query('transferts', orderBy: 'createdAt DESC');
+    return rows.map((row) => TransfertModel.fromMap(row)).toList();
+  }
+
+  @override
+  Future<List<TransfertModel>> getPendingTransferts() async {
+    final rows = await dbHelper.query(
+      'transferts',
+      where: 'status IN (?,?,?,?)',
+      whereArgs: ['en_attente', 'draft', 'envoyé_ussd', 'echec'],
+    );
+    return rows.map((row) => TransfertModel.fromMap(row)).toList();
+  }
+}

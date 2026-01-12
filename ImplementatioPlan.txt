@@ -1,0 +1,74 @@
+Offline-First Synchronization Implementation Plan
+Goal Description
+Implement a robust offline-first synchronization mechanism that detects internet connectivity in real-time (checking actual reachability), triggers synchronization automatically when online, and supports background synchronization even after device reboot.
+
+User Review Required
+IMPORTANT
+
+This change introduces workmanager which requires Android AndroidManifest.xml changes and iOS Info.plist changes (though iOS background sync is limited). The background task runs in a separate isolate, so Dependency Injection (GetIt) needs to be re-initialized in the background task.
+
+Proposed Changes
+Core Network Layer
+[MODIFY] 
+pubspec.yaml
+Add internet_connection_checker_plus for real internet checks.
+Add workmanager for background tasks.
+[MODIFY] 
+network_info.dart
+Add Stream<bool> get onConnectivityChanged to interface.
+Update isConnected to check for actual internet access.
+[MODIFY] 
+network_info_impl.dart
+Implement onConnectivityChanged using InternetConnection().onStatusChange.
+Implement isConnected using InternetConnection().hasInternetAccess.
+Synchronization Logic
+[NEW] 
+sync_service.dart
+A service that listens to NetworkInfo.onConnectivityChanged.
+Triggers TransfertRepository.syncPendingHttpTransferts() when connection is restored.
+Can be used by UI to show sync status.
+[NEW] 
+background_sync_service.dart
+Defines the callbackDispatcher for WorkManager.
+Initializes DI in the background isolate.
+Executes TransfertRepository.syncPendingHttpTransferts().
+Main Entry Point
+[MODIFY] 
+main.dart
+Initialize SyncService on app start.
+Initialize WorkManager and register periodic task.
+Android Native
+[MODIFY] 
+AndroidManifest.xml
+Add permissions if missing (WAKE_LOCK, RECEIVE_BOOT_COMPLETED handled by plugin usually, but verify).
+Verification Plan
+Automated Tests
+Unit tests for 
+NetworkInfoImpl
+ (mocking InternetConnection).
+Unit tests for SyncService (mocking 
+NetworkInfo
+ and 
+TransfertRepository
+).
+Manual Verification
+Real-time Detection:
+Open app.
+Turn off WiFi/Data.
+Perform a transfer (should go to local DB).
+Turn on WiFi/Data.
+Verify logs/UI that sync is triggered immediately.
+Background Sync:
+Turn off internet.
+Create pending transfers.
+Close the app (kill process).
+Turn on internet.
+Wait for 15 minutes (WorkManager minimum interval) or trigger via adb shell.
+Verify data is synced.
+Reboot:
+Create pending transfers.
+Reboot device.
+Wait for sync trigger.
+ADB Commands for Testing Background Sync
+# Force run the job
+adb shell cmd jobscheduler run -f com.example.agent_relais <JOB_ID>

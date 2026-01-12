@@ -1,0 +1,129 @@
+Mon application Flutter offline-first qui doit synchroniser automatiquement les données
+avec une API backend lorsqu'une connexion Internet stable est détectée, même si l’application est en arrière-plan ou fermée.
+
+Objectifs fonctionnels :
+
+Détecter en temps réel :
+
+- l’absence de connexion
+
+- le retour de la connexion
+
+- la stabilité réelle de la connexion (pas seulement connecté au Wi-Fi, mais capable d’appeler l’API)
+
+Dès qu’une connexion stable est disponible :
+
+- déclencher automatiquement la synchronisation
+
+- poster les données vers l’API
+
+- gérer les succès / échecs (retry, backoff).
+
+Garantir la synchronisation :
+
+- en foreground
+
+- en background
+
+- après redémarrage du téléphone (Android).
+
+Mon application est faite avec Clean Architecture et utilise bloc pour la gestion des états.
+Certaines fonctionnalités sont déja intégrées analyse bien l'existant, comprendre, corrige si nécessaire mais ajoute la fonctionnalité de synchronisation automatique que j'ai demandé.
+Fais une séparation claire des logiques, un code propre et clean facile à maintenir et professionnel.
+Utilise si nécessaire du code natif android, les Channels.
+
+
+Avant de tester la fonctionnalité de synchronisation automatique, plusieurs corrections doivent être apportées à la manière dont les données sont publiées.
+
+1. Corrections de la logique de publication des données
+
+Pour chaque transfert :
+
+L'URL POST doit d'abord être récupérée à partir d'un point de terminaison API dédié.
+
+Cette URL récupérée dynamiquement doit ensuite être utilisée pour soumettre les données de transfert.
+
+Dans la sauvegarde local on a un champ fieldsJson enregistré. C'est ce champ qui doit être en body mais ajouté submissionId, formId, status,submissionMethod, typeTransfert, agentId, createdAt.
+
+Les statuts des bases de données locales doivent être gérés correctement afin d'éviter les soumissions en double.
+
+Seuls les transferts qui n'ont pas encore été publiés avec succès via HTTP doivent être envoyés.
+
+Les transferts déjà publiés ne doivent jamais être soumis à nouveau.
+
+2. Corrections du formulaire (Reçus de transfert)
+
+Le formulaire doit être mis à jour comme suit :
+
+Le champ « photo » est incorrect.
+
+Un transfert contient un ou plusieurs reçus d'achat, et non une seule photo.
+
+Chaque reçu comprend :
+
+une image (prise à l'aide d'un appareil photo ou sélectionnée dans la galerie) ;
+
+un numéro de reçu saisi manuellement par l'utilisateur.
+
+Processus utilisateur :
+
+L'utilisateur ajoute un reçu.
+
+Il choisit l'appareil photo ou la galerie.
+
+Il saisit le numéro du reçu.
+
+Il répète le processus pour plusieurs reçus si nécessaire.
+
+Un enregistrement de transfert est donc composé d'un ou plusieurs reçus d'achat.
+
+/////////////////////////////////////////
+voici le endpoint à utiliser pour recupérer l'url de post : /form/v1/presigned/get-upload-url
+le body à poster 
+{
+  "transfer_id": "string",
+  "campaign": "string"
+}
+transfer_id = submissionId dans ma fiche de transfert
+La réponse est un json avec un champ url :
+{
+  "expires_at": "2025-01-09T10:45:00Z",
+  "instructions": {
+    "content_type": "application/json",
+    "method": "PUT",
+    "note": "Upload your JSON file to the upload_url using PUT method"
+  },
+  "s3_key": "transfert/FT-2025-001/20250109_103000_transfer.json",
+  "url": "http://seaweedfs:8888/3,01637037d7?signature=..."
+}
+
+Un exemple de structure de body à poster après recupération de l'url de post est :
+fields : tous les champs du formulaire poster actuellement,
+image: base64
+{
+  "transfer_id": "FT-2025-1256",
+  "fields": {
+    "sheet_number": "FT-2025-1256",
+    "date": "2026-01-11",
+    "transfer_type": 1,
+    "sticker": "STK-5684",
+    "sub_prefecture": 29,
+    "buyer": "Société Cacao Korhogo",
+    "recipient": "Port Autonome de Yamoussoukro",
+    "bags": 355,
+    "weight": 21300,
+    "price": 12567000,
+    "tractor": "AC-9606-CI"
+  },
+  "receipts": [
+    {
+      "image": "",
+      "receipt_number": "RA-6168"
+    },
+    {
+      "receipt_number": "RA-4592",
+      "image": ""
+    },
+   
+  ]
+}
