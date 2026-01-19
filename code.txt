@@ -1,129 +1,675 @@
-Mon application Flutter offline-first qui doit synchroniser automatiquement les données
-avec une API backend lorsqu'une connexion Internet stable est détectée, même si l’application est en arrière-plan ou fermée.
+Dans le systeme existant, je veux insérer l'authentification.
+L'application est faite avec Clean Architecture et utilise bloc pour la gestion des états.
+Analyse bien l'existant, comprendre, corrige si nécessaire mais ajoute la fonctionnalité d'authentification que j'ai demandé.
+La premiere connexion, l'user doit être connecté à internet, ensuite on sauvegarde ces informations en local.
+Lorque les données doivent être synchronisées, on vérifie si le token est toujours valide, sinon on le renouvelle avec le refresh token.
+Si le refresh token est expiré, on redirige l'utilisateur vers la page de connexion.
 
-Objectifs fonctionnels :
+Remplace agentId par le matricule de l'utilisateur connecté dans les transferts lors d'un ajout de transfert.
 
-Détecter en temps réel :
+// TODO: 
+Dans le systeme existant, je veux insérer l'ocr pour capturer le numéro de receiptNumber (Numéro du reçu) lors d'un ajout de transfert (Ajouter un reçu).
+J'ai déja fais un exemple d'implementation ci-dessous, sert toi de ça pour intégrer la fonctionnalité.
+L'application est faite avec Clean Architecture et utilise bloc pour la gestion des états.
+Analyse bien l'existant, comprendre, afin d'ajouter la fonctionnalité d'ocr que j'ai demandé.
 
-- l’absence de connexion
+voici le code que j'ai fais pour l'ocr:
+import 'dart:async';
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:camera/camera.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:permission_handler/permission_handler.dart';
 
-- le retour de la connexion
+class SimpleScannerAlternative extends StatefulWidget {
+  final Function(String) onIdentifierDetected;
+  final RegExp? identifierPattern;
 
-- la stabilité réelle de la connexion (pas seulement connecté au Wi-Fi, mais capable d’appeler l’API)
+  const SimpleScannerAlternative({
+    Key? key,
+    required this.onIdentifierDetected,
+    this.identifierPattern,
+  }) : super(key: key);
 
-Dès qu’une connexion stable est disponible :
-
-- déclencher automatiquement la synchronisation
-
-- poster les données vers l’API
-
-- gérer les succès / échecs (retry, backoff).
-
-Garantir la synchronisation :
-
-- en foreground
-
-- en background
-
-- après redémarrage du téléphone (Android).
-
-Mon application est faite avec Clean Architecture et utilise bloc pour la gestion des états.
-Certaines fonctionnalités sont déja intégrées analyse bien l'existant, comprendre, corrige si nécessaire mais ajoute la fonctionnalité de synchronisation automatique que j'ai demandé.
-Fais une séparation claire des logiques, un code propre et clean facile à maintenir et professionnel.
-Utilise si nécessaire du code natif android, les Channels.
-
-
-Avant de tester la fonctionnalité de synchronisation automatique, plusieurs corrections doivent être apportées à la manière dont les données sont publiées.
-
-1. Corrections de la logique de publication des données
-
-Pour chaque transfert :
-
-L'URL POST doit d'abord être récupérée à partir d'un point de terminaison API dédié.
-
-Cette URL récupérée dynamiquement doit ensuite être utilisée pour soumettre les données de transfert.
-
-Dans la sauvegarde local on a un champ fieldsJson enregistré. C'est ce champ qui doit être en body mais ajouté submissionId, formId, status,submissionMethod, typeTransfert, agentId, createdAt.
-
-Les statuts des bases de données locales doivent être gérés correctement afin d'éviter les soumissions en double.
-
-Seuls les transferts qui n'ont pas encore été publiés avec succès via HTTP doivent être envoyés.
-
-Les transferts déjà publiés ne doivent jamais être soumis à nouveau.
-
-2. Corrections du formulaire (Reçus de transfert)
-
-Le formulaire doit être mis à jour comme suit :
-
-Le champ « photo » est incorrect.
-
-Un transfert contient un ou plusieurs reçus d'achat, et non une seule photo.
-
-Chaque reçu comprend :
-
-une image (prise à l'aide d'un appareil photo ou sélectionnée dans la galerie) ;
-
-un numéro de reçu saisi manuellement par l'utilisateur.
-
-Processus utilisateur :
-
-L'utilisateur ajoute un reçu.
-
-Il choisit l'appareil photo ou la galerie.
-
-Il saisit le numéro du reçu.
-
-Il répète le processus pour plusieurs reçus si nécessaire.
-
-Un enregistrement de transfert est donc composé d'un ou plusieurs reçus d'achat.
-
-/////////////////////////////////////////
-voici le endpoint à utiliser pour recupérer l'url de post : /form/v1/presigned/get-upload-url
-le body à poster 
-{
-  "transfer_id": "string",
-  "campaign": "string"
-}
-transfer_id = submissionId dans ma fiche de transfert
-La réponse est un json avec un champ url :
-{
-  "expires_at": "2025-01-09T10:45:00Z",
-  "instructions": {
-    "content_type": "application/json",
-    "method": "PUT",
-    "note": "Upload your JSON file to the upload_url using PUT method"
-  },
-  "s3_key": "transfert/FT-2025-001/20250109_103000_transfer.json",
-  "url": "http://seaweedfs:8888/3,01637037d7?signature=..."
+  @override
+  State<SimpleScannerAlternative> createState() =>
+      _SimpleScannerAlternativeState();
 }
 
-Un exemple de structure de body à poster après recupération de l'url de post est :
-fields : tous les champs du formulaire poster actuellement,
-image: base64
-{
-  "transfer_id": "FT-2025-1256",
-  "fields": {
-    "sheet_number": "FT-2025-1256",
-    "date": "2026-01-11",
-    "transfer_type": 1,
-    "sticker": "STK-5684",
-    "sub_prefecture": 29,
-    "buyer": "Société Cacao Korhogo",
-    "recipient": "Port Autonome de Yamoussoukro",
-    "bags": 355,
-    "weight": 21300,
-    "price": 12567000,
-    "tractor": "AC-9606-CI"
-  },
-  "receipts": [
-    {
-      "image": "",
-      "receipt_number": "RA-6168"
-    },
-    {
-      "receipt_number": "RA-4592",
-      "image": ""
-    },
-   
-  ]
+class _SimpleScannerAlternativeState extends State<SimpleScannerAlternative> {
+  CameraController? _cameraController;
+  final TextRecognizer _textRecognizer = TextRecognizer();
+  bool _isProcessing = false;
+  String? _detectedIdentifier;
+  String? _feedbackMessage;
+
+  late RegExp _pattern;
+
+  @override
+  void initState() {
+    super.initState();
+    _pattern = widget.identifierPattern ?? RegExp(r'^[A-Z0-9]{6,12}$');
+    _initializeCamera();
+  }
+
+  Future<void> _initializeCamera() async {
+    final status = await Permission.camera.request();
+    if (status != PermissionStatus.granted) {
+      _showPermissionDeniedDialog();
+      return;
+    }
+
+    try {
+      final cameras = await availableCameras();
+      if (cameras.isEmpty) {
+        _showError('Aucune caméra disponible');
+        return;
+      }
+
+      _cameraController = CameraController(
+        cameras.first,
+        ResolutionPreset.medium,
+        enableAudio: false,
+      );
+
+      await _cameraController!.initialize();
+      await _cameraController!.setFocusMode(FocusMode.auto);
+
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (e) {
+      _showError('Erreur d\'initialisation: $e');
+    }
+  }
+
+  Future<void> _captureAndProcess() async {
+    if (_isProcessing || _cameraController == null) return;
+
+    setState(() {
+      _isProcessing = true;
+      _feedbackMessage = 'Analyse en cours...';
+    });
+
+    try {
+      final XFile imageFile = await _cameraController!.takePicture();
+      final InputImage inputImage = InputImage.fromFilePath(imageFile.path);
+
+      final recognizedText = await _textRecognizer.processImage(inputImage);
+
+      // Supprimer le fichier temporaire
+      await File(imageFile.path).delete();
+
+      _extractIdentifier(recognizedText.text);
+    } catch (e) {
+      setState(() {
+        _feedbackMessage = 'Erreur: ${e.toString()}';
+      });
+      debugPrint('Erreur capture: $e');
+    } finally {
+      setState(() {
+        _isProcessing = false;
+      });
+
+      // Effacer le message après 2 secondes
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted && _detectedIdentifier == null) {
+          setState(() {
+            _feedbackMessage = null;
+          });
+        }
+      });
+    }
+  }
+
+  void _extractIdentifier(String text) {
+    debugPrint('Texte reconnu: $text');
+
+    final lines = text.split('\n');
+
+    for (final line in lines) {
+      final cleaned = line
+          .replaceAll(RegExp(r'\s+'), '')
+          .toUpperCase()
+          .replaceAll('O', '0')
+          .replaceAll('I', '1')
+          .replaceAll('S', '5');
+
+      if (_pattern.hasMatch(cleaned)) {
+        _onIdentifierFound(cleaned);
+        return;
+      }
+
+      final matches = RegExp(r'[A-Z0-9]{6,12}').allMatches(cleaned);
+      for (final match in matches) {
+        final candidate = match.group(0)!;
+        if (_pattern.hasMatch(candidate)) {
+          _onIdentifierFound(candidate);
+          return;
+        }
+      }
+    }
+
+    setState(() {
+      _feedbackMessage = 'Aucun identifiant trouvé. Réessayez.';
+    });
+  }
+
+  void _onIdentifierFound(String identifier) {
+    setState(() {
+      _detectedIdentifier = identifier;
+      _feedbackMessage = 'Identifiant détecté !';
+    });
+
+    HapticFeedback.lightImpact();
+
+    Future.delayed(const Duration(milliseconds: 500), () {
+      widget.onIdentifierDetected(identifier);
+    });
+  }
+
+  void _showPermissionDeniedDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Permission requise'),
+        content: const Text(
+          'L\'accès à la caméra est nécessaire pour scanner les fiches.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              openAppSettings();
+            },
+            child: const Text('Paramètres'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  @override
+  void dispose() {
+    _cameraController?.dispose();
+    _textRecognizer.close();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_cameraController == null || !_cameraController!.value.isInitialized) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          CameraPreview(_cameraController!),
+
+          CustomPaint(
+            painter: ScannerOverlayPainter(
+              scanAreaRect: _getScanAreaRect(),
+              isDetected: _detectedIdentifier != null,
+            ),
+          ),
+
+          _buildTopBar(),
+
+          if (_feedbackMessage != null) _buildFeedback(),
+
+          _buildInstructions(),
+        ],
+      ),
+      floatingActionButton: _detectedIdentifier == null
+          ? FloatingActionButton.extended(
+              onPressed: _isProcessing ? null : _captureAndProcess,
+              backgroundColor: _isProcessing ? Colors.grey : Colors.blue,
+              icon: _isProcessing
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Icon(Icons.camera),
+              label: Text(_isProcessing ? 'Analyse...' : 'Scanner'),
+            )
+          : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+    );
+  }
+
+  Rect _getScanAreaRect() {
+    final size = MediaQuery.of(context).size;
+    const double scanAreaWidth = 300.0;
+    const double scanAreaHeight = 100.0;
+
+    return Rect.fromCenter(
+      center: Offset(size.width / 2, size.height / 2),
+      width: scanAreaWidth,
+      height: scanAreaHeight,
+    );
+  }
+
+  Widget _buildTopBar() {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.close, color: Colors.white, size: 28),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFeedback() {
+    final isSuccess = _detectedIdentifier != null;
+
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: 150),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            decoration: BoxDecoration(
+              color: isSuccess ? Colors.green : Colors.orange,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              children: [
+                Icon(
+                  isSuccess ? Icons.check_circle : Icons.info,
+                  color: Colors.white,
+                  size: 48,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  _feedbackMessage ?? '',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                if (_detectedIdentifier != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    _detectedIdentifier!,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInstructions() {
+    return Positioned(
+      bottom: 100,
+      left: 0,
+      right: 0,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        margin: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.7),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.document_scanner, color: Colors.white, size: 32),
+            const SizedBox(height: 8),
+            const Text(
+              'Placez le numéro dans le cadre',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'puis appuyez sur Scanner',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.8),
+                fontSize: 14,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Réutiliser le même ScannerOverlayPainter du code précédent
+class ScannerOverlayPainter extends CustomPainter {
+  final Rect scanAreaRect;
+  final bool isDetected;
+
+  ScannerOverlayPainter({required this.scanAreaRect, required this.isDetected});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final backgroundPath = Path()
+      ..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
+    final scanAreaPath = Path()
+      ..addRRect(
+        RRect.fromRectAndRadius(scanAreaRect, const Radius.circular(12)),
+      );
+    final overlayPath = Path.combine(
+      PathOperation.difference,
+      backgroundPath,
+      scanAreaPath,
+    );
+
+    canvas.drawPath(
+      overlayPath,
+      Paint()..color = Colors.black.withOpacity(0.6),
+    );
+
+    final borderPaint = Paint()
+      ..color = isDetected ? Colors.green : Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.0;
+
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(scanAreaRect, const Radius.circular(12)),
+      borderPaint,
+    );
+
+    _drawCorners(canvas, scanAreaRect, isDetected);
+  }
+
+  void _drawCorners(Canvas canvas, Rect rect, bool detected) {
+    final paint = Paint()
+      ..color = detected ? Colors.green : Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 5.0
+      ..strokeCap = StrokeCap.round;
+
+    const cornerLength = 24.0;
+
+    canvas.drawLine(
+      rect.topLeft,
+      rect.topLeft + const Offset(cornerLength, 0),
+      paint,
+    );
+    canvas.drawLine(
+      rect.topLeft,
+      rect.topLeft + const Offset(0, cornerLength),
+      paint,
+    );
+
+    canvas.drawLine(
+      rect.topRight,
+      rect.topRight + const Offset(-cornerLength, 0),
+      paint,
+    );
+    canvas.drawLine(
+      rect.topRight,
+      rect.topRight + const Offset(0, cornerLength),
+      paint,
+    );
+
+    canvas.drawLine(
+      rect.bottomLeft,
+      rect.bottomLeft + const Offset(cornerLength, 0),
+      paint,
+    );
+    canvas.drawLine(
+      rect.bottomLeft,
+      rect.bottomLeft + const Offset(0, -cornerLength),
+      paint,
+    );
+
+    canvas.drawLine(
+      rect.bottomRight,
+      rect.bottomRight + const Offset(-cornerLength, 0),
+      paint,
+    );
+    canvas.drawLine(
+      rect.bottomRight,
+      rect.bottomRight + const Offset(0, -cornerLength),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(ScannerOverlayPainter oldDelegate) {
+    return oldDelegate.isDetected != isDetected;
+  }
+}
+
+import 'package:flutter/material.dart';
+import 'package:ft_ocr/simple_scanner.dart';
+import 'package:ft_ocr/transfert_sheet_scanner.dart';
+
+class TransferSheetFormPage extends StatefulWidget {
+  const TransferSheetFormPage({Key? key}) : super(key: key);
+
+  @override
+  State<TransferSheetFormPage> createState() => _TransferSheetFormPageState();
+}
+
+class _TransferSheetFormPageState extends State<TransferSheetFormPage> {
+  final TextEditingController _identifierController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
+  void _openScanner() async {
+    final result = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SimpleScannerAlternative(
+          onIdentifierDetected: (identifier) {
+            Navigator.pop(context, identifier);
+          },
+          identifierPattern: RegExp(r'\b\d{5,7}\b'),
+        ),
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        _identifierController.text = result;
+      });
+
+      // Optionnel : Validation automatique ou sauvegarde
+      _validateAndSubmit();
+    }
+  }
+
+  void _validateAndSubmit() {
+    if (_formKey.currentState!.validate()) {
+      // Traiter le formulaire
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Fiche ${_identifierController.text} enregistrée'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _identifierController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Numérisation Fiche de Transfert')),
+      body: Form(
+        key: _formKey,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Champ d'identifiant avec bouton de scan
+              TextFormField(
+                controller: _identifierController,
+                decoration: InputDecoration(
+                  labelText: 'Numéro de fiche',
+                  hintText: 'Scannez ou saisissez le numéro',
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.qr_code_scanner),
+                    onPressed: _openScanner,
+                    tooltip: 'Scanner la fiche',
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Veuillez saisir ou scanner un numéro';
+                  }
+                  return null;
+                },
+                textCapitalization: TextCapitalization.characters,
+              ),
+
+              const SizedBox(height: 24),
+
+              // Bouton de scan proéminent
+              ElevatedButton.icon(
+                onPressed: _openScanner,
+                icon: const Icon(Icons.document_scanner),
+                label: const Text('Scanner la fiche'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  textStyle: const TextStyle(fontSize: 16),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Autres champs du formulaire
+              TextFormField(
+                decoration: const InputDecoration(
+                  labelText: 'Description',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 3,
+              ),
+
+              const Spacer(),
+
+              // Bouton de validation
+              ElevatedButton(
+                onPressed: _validateAndSubmit,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: Colors.green,
+                ),
+                child: const Text(
+                  'Valider la numérisation',
+                  style: TextStyle(fontSize: 16),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Widget alternatif : Bouton flottant pour scanner
+class TransferSheetFormWithFAB extends StatefulWidget {
+  const TransferSheetFormWithFAB({Key? key}) : super(key: key);
+
+  @override
+  State<TransferSheetFormWithFAB> createState() =>
+      _TransferSheetFormWithFABState();
+}
+
+class _TransferSheetFormWithFABState extends State<TransferSheetFormWithFAB> {
+  final TextEditingController _identifierController = TextEditingController();
+
+  void _openScanner() async {
+    final result = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (context) => TransferSheetScanner(
+          onIdentifierDetected: (identifier) {
+            Navigator.pop(context, identifier);
+          },
+        ),
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        _identifierController.text = result;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Nouvelle Fiche')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextFormField(
+              controller: _identifierController,
+              decoration: const InputDecoration(
+                labelText: 'Numéro de fiche',
+                border: OutlineInputBorder(),
+              ),
+              readOnly: true, // Seulement par scan
+            ),
+            // Autres champs...
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _openScanner,
+        icon: const Icon(Icons.document_scanner),
+        label: const Text('Scanner'),
+      ),
+    );
+  }
 }

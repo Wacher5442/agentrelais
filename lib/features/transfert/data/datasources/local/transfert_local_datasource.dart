@@ -14,6 +14,7 @@ abstract class TransfertLocalDataSource {
   );
   Future<List<TransfertModel>> getAllTransferts();
   Future<List<TransfertModel>> getPendingTransferts();
+  Future<int> countTransfertsByStatus(List<String> statuses);
 }
 
 class TransfertLocalDataSourceImpl implements TransfertLocalDataSource {
@@ -71,9 +72,30 @@ class TransfertLocalDataSourceImpl implements TransfertLocalDataSource {
   Future<List<TransfertModel>> getPendingTransferts() async {
     final rows = await dbHelper.query(
       'transferts',
-      where: 'status IN (?,?,?,?)',
-      whereArgs: ['en_attente', 'draft', 'envoyé_ussd', 'echec'],
+      where: 'status IN (?,?,?)',
+      whereArgs: ['en_attente', 'draft', 'envoyé_ussd'],
     );
     return rows.map((row) => TransfertModel.fromMap(row)).toList();
+  }
+
+  @override
+  Future<int> countTransfertsByStatus(List<String> statuses) async {
+    if (statuses.isEmpty) {
+      // Return total count if no status filter provided
+      final result = await dbHelper.query(
+        'transferts',
+        columns: ['COUNT(*) as count'],
+      );
+      return result.first['count'] as int;
+    }
+
+    final placeholders = List.filled(statuses.length, '?').join(',');
+    final result = await dbHelper.query(
+      'transferts',
+      columns: ['COUNT(*) as count'],
+      where: 'status IN ($placeholders)',
+      whereArgs: statuses,
+    );
+    return result.first['count'] as int;
   }
 }

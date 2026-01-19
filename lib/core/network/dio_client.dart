@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:dio/dio.dart';
 
 class DioClient {
@@ -6,12 +8,13 @@ class DioClient {
   DioClient._internal(this.dio);
 
   factory DioClient({required String baseUrl, Duration? timeout}) {
+    log("baseUrl $baseUrl");
     final d = Dio(
       BaseOptions(
         baseUrl: baseUrl,
-        connectTimeout: timeout ?? const Duration(seconds: 10),
-        receiveTimeout: timeout ?? const Duration(seconds: 10),
-        sendTimeout: timeout ?? const Duration(seconds: 10),
+        connectTimeout: timeout ?? const Duration(minutes: 10),
+        receiveTimeout: timeout ?? const Duration(minutes: 10),
+        sendTimeout: timeout ?? const Duration(minutes: 10),
         responseType: ResponseType.json,
         headers: {'Accept': 'application/json'},
       ),
@@ -59,6 +62,7 @@ class DioClient {
     required dynamic data,
     Options? options,
   }) {
+    log("POST $path");
     return dio.post(path, data: data, options: options);
   }
 

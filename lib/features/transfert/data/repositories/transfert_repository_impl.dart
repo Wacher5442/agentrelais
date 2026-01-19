@@ -31,12 +31,17 @@ class TransfertRepositoryImpl implements TransfertRepository {
   // --- CONFIGURATION USSD FIXE (HARDCODED) ---
   // On ne garde que l'essentiel pour l'USSD afin de limiter le nombre de SMS
   final List<String> _ussdFieldsWhitelist = [
+    'typeTransfert',
     'numeroFiche',
     'sticker',
-    'typeTransfert',
+    'date',
+    'sousPrefecture',
+    'destinationVille',
+    'codeAcheteur',
+    'nomMagasin',
     'sacs',
     'poids',
-    'codeAcheteur',
+    'contactTransporteur',
     'immatriculation',
   ];
 
@@ -120,21 +125,47 @@ class TransfertRepositoryImpl implements TransfertRepository {
           final receiptsList = <Map<String, dynamic>>[];
           for (var receipt in transfert.receipts) {
             String base64Image = "";
+
             if (receipt.imagePath.isNotEmpty) {
               final file = File(receipt.imagePath);
+
               if (await file.exists()) {
                 final bytes = await file.readAsBytes();
+
+                // Taille du fichier
+                final int sizeInBytes = bytes.length;
+                final double sizeInKB = sizeInBytes / 1024;
+                final double sizeInMB = sizeInKB / 1024;
+
+                log(
+                  'Receipt ${receipt.receiptNumber} | '
+                  'File size: ${sizeInBytes} bytes '
+                  '(${sizeInKB.toStringAsFixed(2)} KB / '
+                  '${sizeInMB.toStringAsFixed(2)} MB)',
+                  name: 'UPLOAD_RECEIPT',
+                );
+
                 base64Image = base64Encode(bytes);
+
+                // Taille après Base64
+                final int base64Size = base64Image.length;
+                log(
+                  'Receipt ${receipt.receiptNumber} | '
+                  'Base64 size: $base64Size chars',
+                  name: 'UPLOAD_RECEIPT',
+                );
+              } else {
+                log(
+                  'Receipt ${receipt.receiptNumber} | File not found',
+                  level: 900,
+                  name: 'UPLOAD_RECEIPT',
+                );
               }
             }
+
             receiptsList.add({
               "receipt_number": receipt.receiptNumber,
-              // "image": base64Image,
-              "sub_prefecture": 29,
-              "bags_purchased": 118,
-              "total_weight": 7080,
-              "unit_price": 538,
-              "producer": "TEST",
+              "image": base64Image,
             });
           }
 
@@ -227,10 +258,29 @@ class TransfertRepositoryImpl implements TransfertRepository {
     int count = 0;
     for (var t in pending) {
       try {
+        log("Submission ID fetching url ${t.submissionId}");
         final url = await remoteDataSource.getUploadUrl(t.submissionId);
         final fields = jsonDecode(t.fieldsJson ?? '{}') as Map<String, dynamic>;
 
-        // Convert receipts to Base64
+        // 1️⃣ Calcul taille totale
+        int totalBytes = 0;
+        for (var r in t.receipts) {
+          if (r.imagePath.isNotEmpty) {
+            final f = File(r.imagePath);
+            if (await f.exists()) {
+              totalBytes += await f.length();
+            }
+          }
+        }
+
+        final totalMB = totalBytes / 1024 / 1024;
+        log(
+          'SYNC ${t.submissionId} | '
+          '${t.receipts.length} receipts | '
+          '${totalMB.toStringAsFixed(2)} MB',
+          name: 'SYNC_HTTP',
+        );
+
         final receiptsList = <Map<String, dynamic>>[];
         for (var receipt in t.receipts) {
           String base64Image = "";
@@ -243,12 +293,7 @@ class TransfertRepositoryImpl implements TransfertRepository {
           }
           receiptsList.add({
             "receipt_number": receipt.receiptNumber,
-            // "image": base64Image,
-            "sub_prefecture": 29,
-            "bags_purchased": 118,
-            "total_weight": 7080,
-            "unit_price": 538,
-            "producer": "TEST",
+            "image": base64Image,
           });
         }
 
@@ -258,7 +303,7 @@ class TransfertRepositoryImpl implements TransfertRepository {
           "receipts": receiptsList,
         };
 
-        log("Uploading transfert: $payload");
+        log("Uploading transfert");
         await remoteDataSource.uploadTransfert(url: url, payload: payload);
         await localDataSource.updateStatus(t.submissionId, 'synchronisé');
         count++;

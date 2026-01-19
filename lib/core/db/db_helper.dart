@@ -83,6 +83,7 @@ class DbHelper {
     String? where,
     List<dynamic>? whereArgs,
     String? orderBy,
+    List<String>? columns,
   }) async {
     final db = await database;
     return await db.query(
@@ -90,6 +91,7 @@ class DbHelper {
       where: where,
       whereArgs: whereArgs,
       orderBy: orderBy,
+      columns: columns,
     );
   }
 

@@ -11,12 +11,14 @@ class TransfertRemoteDataSource {
   Future<String> getUploadUrl(String submissionId) async {
     try {
       log("Submission ID fetching url $submissionId");
+
       final resp = await dioClient.post(
-        '/form/v1/presigned/get-upload-url',
-        data: {'transfer_id': '$submissionId', 'campaign': '2024-2025'},
+        '/object-gateway/api/presigned/get-upload-url',
+        data: {'file_type': '$submissionId', 'agent_id': '2024-2025'},
         options: Options(headers: {'Content-Type': 'application/json'}),
       );
 
+      log("Upload URL: ${resp.data['url']}");
       if (resp.statusCode == 200 && resp.data['url'] != null) {
         return resp.data['url'];
       }

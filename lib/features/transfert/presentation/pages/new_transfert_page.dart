@@ -497,28 +497,28 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
                   children: [
                     textField(
                       nomAcheteurController,
-                      label: "Nom acheteur",
+                      label: "Nom acheteur *",
                       hint: "Ex: Coopérative XYZ / 105 A",
                       validator: requiredValidator,
                       keyboardType: TextInputType.text,
                     ),
                     textField(
                       contactAcheteurController,
-                      label: "Contact",
+                      label: "Contact *",
                       hint: "Ex: 0707080808",
                       validator: requiredValidator,
                       keyboardType: TextInputType.phone,
                     ),
                     textField(
                       codeAcheteurController,
-                      label: "Code de l'Acheteur",
+                      label: "Code de l'Acheteur *",
                       hint: "",
                       validator: requiredValidator,
                     ),
                     textField(
                       nomMagasinController,
-                      label: "Nom magasin",
-                      hint: "Ex: Magasin YEO",
+                      label: "Nom magasin *",
+                      hint: "Ex: Magasin 105 A",
                       validator: requiredValidator,
                     ),
                   ],
