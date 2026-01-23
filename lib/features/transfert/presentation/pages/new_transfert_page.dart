@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -13,6 +14,7 @@ import '../../domain/entities/transfert_entity.dart';
 import '../bloc/transfert_submission_bloc.dart';
 import '../bloc/transfert_submission_event.dart';
 import '../bloc/transfert_submission_state.dart';
+import '../widgets/receipt_number_scanner.dart';
 
 class NewTransfertPage extends StatefulWidget {
   const NewTransfertPage({super.key});
@@ -70,6 +72,7 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
   double valeurTotale = 0;
   bool _isLoading = false;
   bool _hasPermission = false;
+  XFile? photoFiche;
 
   bool _forceUssd = false;
 
@@ -120,6 +123,16 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
   void _requestPermissions() async {
     final hasPermission = await UssdService.checkAndRequestPermissions();
     setState(() => _hasPermission = hasPermission);
+  }
+
+  Future<void> prendrePhoto() async {
+    final picker = ImagePicker();
+    final image = await picker.pickImage(source: ImageSource.camera);
+    if (image != null) {
+      setState(() {
+        photoFiche = image;
+      });
+    }
   }
 
   Future<void> _showAddReceiptDialog() async {
@@ -178,7 +191,75 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
                 controller: numberController,
                 decoration: InputDecoration(
                   labelText: "Numéro du reçu",
-                  border: OutlineInputBorder(),
+                  hintText: "Ex: 1234567",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.qr_code_scanner, color: primaryColor),
+                    tooltip: "Scanner le numéro",
+                    onPressed: () async {
+                      final scannedNumber = await Navigator.push<String>(
+                        context,
+                        MaterialPageRoute(
+                          fullscreenDialog: true,
+                          builder: (context) => ReceiptNumberScanner(
+                            onNumberDetected: (number) {
+                              Navigator.pop(context, number);
+                            },
+                            // Pattern pour les numéros de reçu (5 à 10 chiffres)
+                            numberPattern: RegExp(r'\b\d{5,10}\b'),
+                          ),
+                        ),
+                      );
+
+                      if (scannedNumber != null) {
+                        setStateDialog(() {
+                          numberController.text = scannedNumber;
+                        });
+                      }
+                    },
+                  ),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+
+              SizedBox(height: 12),
+
+              // Bouton proéminent pour scanner
+              OutlinedButton.icon(
+                onPressed: () async {
+                  final scannedNumber = await Navigator.push<String>(
+                    context,
+                    MaterialPageRoute(
+                      fullscreenDialog: true,
+                      builder: (context) => ReceiptNumberScanner(
+                        onNumberDetected: (number) {
+                          Navigator.pop(context, number);
+                        },
+                        numberPattern: RegExp(r'\b\d{5,10}\b'),
+                      ),
+                    ),
+                  );
+
+                  if (scannedNumber != null) {
+                    setStateDialog(() {
+                      numberController.text = scannedNumber;
+                    });
+                  }
+                },
+                icon: Padding(
+                  padding: const EdgeInsets.only(left: 8.0),
+                  child: Icon(Icons.document_scanner),
+                ),
+                label: Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: Text("Scanner le numéro automatiquement"),
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: primaryColor,
+                  side: BorderSide(color: primaryColor),
+                  padding: EdgeInsets.symmetric(vertical: 12),
                 ),
               ),
             ],
@@ -219,7 +300,7 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
 
     final entity = TransfertEntity(
       submissionId: '',
-      formId: 5,
+      formId: 1,
       status: 'draft',
       submissionMethod: _forceUssd ? 'ussd' : 'http',
       agentId: 'AGENT_007',
@@ -253,6 +334,7 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
       avantCamion: avantCamionController.text,
       nomChauffeur: nomChauffeurController.text,
       permisConduire: permisConduireController.text,
+      photoFiche: photoFiche?.path,
       receipts: _receipts,
     );
 
@@ -421,6 +503,30 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
                     numeroFicheController,
                     hint: "Ex: RBC-2025-001",
                     validator: requiredValidator,
+                    suffixIcon: IconButton(
+                      icon: Icon(Icons.qr_code_scanner, color: primaryColor),
+                      tooltip: "Scanner le numéro",
+                      onPressed: () async {
+                        final scannedNumber = await Navigator.push<String>(
+                          context,
+                          MaterialPageRoute(
+                            fullscreenDialog: true,
+                            builder: (context) => ReceiptNumberScanner(
+                              onNumberDetected: (number) {
+                                Navigator.pop(context, number);
+                              },
+                              numberPattern: RegExp(r'\b\d{5,10}\b'),
+                            ),
+                          ),
+                        );
+
+                        if (scannedNumber != null) {
+                          setState(() {
+                            numeroFicheController.text = scannedNumber;
+                          });
+                        }
+                      },
+                    ),
                   ),
                 ),
                 inputSection(
@@ -429,6 +535,31 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
                     stickerController,
                     hint: "Ex: RBC-2025-001",
                     validator: requiredValidator,
+                    suffixIcon: IconButton(
+                      icon: Icon(Icons.qr_code_scanner, color: primaryColor),
+                      tooltip: "Scanner le numéro",
+                      onPressed: () async {
+                        final scannedNumber = await Navigator.push<String>(
+                          context,
+                          MaterialPageRoute(
+                            fullscreenDialog: true,
+                            builder: (context) => ReceiptNumberScanner(
+                              onNumberDetected: (number) {
+                                Navigator.pop(context, number);
+                              },
+                              // Pattern pour les numéros de reçu (5 à 10 chiffres)
+                              numberPattern: RegExp(r'\b\d{5,10}\b'),
+                            ),
+                          ),
+                        );
+
+                        if (scannedNumber != null) {
+                          setState(() {
+                            stickerController.text = scannedNumber;
+                          });
+                        }
+                      },
+                    ),
                   ),
                 ),
 
@@ -618,6 +749,110 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
                 ),
 
                 const SizedBox(height: 10),
+                Text(
+                  "Photo de la fiche",
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                photoFiche == null
+                    ? GestureDetector(
+                        onTap: _isLoading ? null : prendrePhoto,
+                        child: Container(
+                          width: double.infinity,
+                          alignment: Alignment.center,
+                          height: 200,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFD9D9D9).withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: DottedBorder(
+                            options: RoundedRectDottedBorderOptions(
+                              dashPattern: [5, 5],
+                              strokeWidth: 2,
+                              padding: const EdgeInsets.all(16),
+                              color: Colors.grey,
+                              radius: const Radius.circular(10),
+                            ),
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.add_a_photo_outlined,
+                                    size: 40,
+                                    color: Colors.grey,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    "Appuyer pour prendre une photo",
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+                    : Column(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.file(
+                              File(photoFiche!.path),
+                              fit: BoxFit.cover,
+                              height: 250,
+                              width: double.infinity,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () =>
+                                      setState(() => photoFiche = null),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.red,
+                                  ),
+                                  icon: const Icon(
+                                    Icons.delete,
+                                    color: Colors.white,
+                                  ),
+                                  label: const Text(
+                                    "Supprimer",
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: prendrePhoto,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.blue,
+                                  ),
+                                  icon: const Icon(
+                                    Icons.camera_alt,
+                                    color: Colors.white,
+                                  ),
+                                  label: const Text(
+                                    "Reprendre",
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+
+                const SizedBox(height: 20),
                 Text(
                   "Reçus (${_receipts.length})",
                   style: GoogleFonts.poppins(
@@ -814,6 +1049,7 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
     Function(String)? onChanged,
     String? Function(String?)? validator,
     TextInputType? keyboardType,
+    Widget? suffixIcon,
   }) => Padding(
     padding: const EdgeInsets.only(bottom: 10),
     child: Column(
@@ -837,10 +1073,12 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
           validator: validator,
           keyboardType: keyboardType,
           style: GoogleFonts.poppins(fontSize: 14),
+
           decoration: InputDecoration(
             hintText: hint,
             filled: true,
             fillColor: Colors.white,
+            suffixIcon: suffixIcon,
             hintStyle: GoogleFonts.poppins(fontSize: 13, color: Colors.grey),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),

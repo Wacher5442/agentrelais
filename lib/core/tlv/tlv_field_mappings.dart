@@ -27,10 +27,19 @@ class TlvFieldMappings {
   static const int nomMagasin = 17;
   static const int immatriculation = 18;
   static const int chauffeur = 19;
+  static const int thDepart = 20;
+  static const int nomTransporteur = 21;
+  static const int contactTransporteur = 22;
+  static const int marqueCamion = 23;
+  static const int avantCamion = 24;
+  static const int denominationProduit = 25;
+  static const int permisConduire = 26;
 
   // Types des métadonnées (200-255)
-  static const int submissionId = 200;
-  static const int agentId = 201;
+  // static const int submissionId = 200;
+  static const int agentId = 200;
+  static const int campagne = 201;
+  static const int receiptCount = 203;
 
   static Uint8List _utf8(String? s) => Uint8List.fromList(utf8.encode(s ?? ''));
 
@@ -38,8 +47,9 @@ class TlvFieldMappings {
   /// Si le filtre 'keysToKeep' est fourni, seuls ces champs seront inclus (utile pour USSD)
   static List<TlvField> mapFromDto(
     Map<String, dynamic> json,
-    String submissionId,
-    String agentId, {
+    String agentId,
+    String campagne,
+    String receiptCount, {
     List<String>? keysToKeep,
   }) {
     // Définition de tous les champs possibles mappés à leurs tags
@@ -66,13 +76,19 @@ class TlvFieldMappings {
         _utf8(json['immatriculation']),
       ),
       'nomChauffeur': TlvField(chauffeur, _utf8(json['nomChauffeur'])),
+      'denominationProduit': TlvField(
+        denominationProduit,
+        _utf8(json['denomination']),
+      ),
       'sacs': TlvField(sacs, _utf8(json['sacs'])),
       'poids': TlvField(poids, _utf8(json['poids'])),
       'prix': TlvField(prix, _utf8(json['prix'])),
     };
 
     List<TlvField> fields = [
-      TlvField(TlvFieldMappings.submissionId, _utf8(submissionId)),
+      TlvField(TlvFieldMappings.agentId, _utf8(agentId)),
+      TlvField(TlvFieldMappings.campagne, _utf8(campagne)),
+
       TlvField(TlvFieldMappings.agentId, _utf8(agentId)),
     ];
 

@@ -14,8 +14,13 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final TextEditingController phoneController = TextEditingController(text: '');
+  final TextEditingController usernameController = TextEditingController(
+    text: '',
+  );
   final TextEditingController passwordController = TextEditingController(
+    text: '',
+  );
+  final TextEditingController regionController = TextEditingController(
     text: '',
   );
   bool passwordVisible = false;
@@ -82,7 +87,7 @@ class _LoginPageState extends State<LoginPage> {
                             hintText: "Code utilisateur",
                             label: "Code utilisateur",
                             suffixIcon: SizedBox(),
-                            controller: phoneController,
+                            controller: usernameController,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return "Code utilisateur requis";
@@ -125,6 +130,13 @@ class _LoginPageState extends State<LoginPage> {
                                     onPressed: togglePassword,
                                   )
                                 : Text(''),
+                          ),
+                          SizedBox(height: 32),
+                          InputField(
+                            hintText: "Région",
+                            label: "Région",
+                            suffixIcon: SizedBox(),
+                            controller: regionController,
                           ),
                         ],
                       ),

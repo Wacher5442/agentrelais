@@ -1,675 +1,208 @@
-Dans le systeme existant, je veux insérer l'authentification.
+Dans le systeme existant, je veux intégrer l'authentification.
 L'application est faite avec Clean Architecture et utilise bloc pour la gestion des états.
-Analyse bien l'existant, comprendre, corrige si nécessaire mais ajoute la fonctionnalité d'authentification que j'ai demandé.
+En tant que developpeur senior flutter, Analyse bien l'existant, comprendre, corrige si nécessaire mais ajoute la fonctionnalité d'authentification que j'ai demandé et les autres points que j'ai mentionné.
 La premiere connexion, l'user doit être connecté à internet, ensuite on sauvegarde ces informations en local.
 Lorque les données doivent être synchronisées, on vérifie si le token est toujours valide, sinon on le renouvelle avec le refresh token.
 Si le refresh token est expiré, on redirige l'utilisateur vers la page de connexion.
 
-Remplace agentId par le matricule de l'utilisateur connecté dans les transferts lors d'un ajout de transfert.
+En fonction de l'agent connecté, son rôle(agent, prestataire), la home page (dashboard) est différente.
 
-// TODO: 
-Dans le systeme existant, je veux insérer l'ocr pour capturer le numéro de receiptNumber (Numéro du reçu) lors d'un ajout de transfert (Ajouter un reçu).
-J'ai déja fais un exemple d'implementation ci-dessous, sert toi de ça pour intégrer la fonctionnalité.
-L'application est faite avec Clean Architecture et utilise bloc pour la gestion des états.
-Analyse bien l'existant, comprendre, afin d'ajouter la fonctionnalité d'ocr que j'ai demandé.
+Aussi, Remplace agentId par le username de l'utilisateur connecté dans les transferts(formulaire d'ajout) lors d'un ajout de transfert.
 
-voici le code que j'ai fais pour l'ocr:
-import 'dart:async';
-import 'dart:io';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:camera/camera.dart';
-import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
-import 'package:permission_handler/permission_handler.dart';
+Pour se connecté : POST /api/auth/login, on envoie un matricule et un mot de passe {
+  "username": "string",
+  "password": "string"
+}, on recupere un token et un refresh token. Exemple de reponse success:
 
-class SimpleScannerAlternative extends StatefulWidget {
-  final Function(String) onIdentifierDetected;
-  final RegExp? identifierPattern;
-
-  const SimpleScannerAlternative({
-    Key? key,
-    required this.onIdentifierDetected,
-    this.identifierPattern,
-  }) : super(key: key);
-
-  @override
-  State<SimpleScannerAlternative> createState() =>
-      _SimpleScannerAlternativeState();
-}
-
-class _SimpleScannerAlternativeState extends State<SimpleScannerAlternative> {
-  CameraController? _cameraController;
-  final TextRecognizer _textRecognizer = TextRecognizer();
-  bool _isProcessing = false;
-  String? _detectedIdentifier;
-  String? _feedbackMessage;
-
-  late RegExp _pattern;
-
-  @override
-  void initState() {
-    super.initState();
-    _pattern = widget.identifierPattern ?? RegExp(r'^[A-Z0-9]{6,12}$');
-    _initializeCamera();
-  }
-
-  Future<void> _initializeCamera() async {
-    final status = await Permission.camera.request();
-    if (status != PermissionStatus.granted) {
-      _showPermissionDeniedDialog();
-      return;
-    }
-
-    try {
-      final cameras = await availableCameras();
-      if (cameras.isEmpty) {
-        _showError('Aucune caméra disponible');
-        return;
-      }
-
-      _cameraController = CameraController(
-        cameras.first,
-        ResolutionPreset.medium,
-        enableAudio: false,
-      );
-
-      await _cameraController!.initialize();
-      await _cameraController!.setFocusMode(FocusMode.auto);
-
-      if (mounted) {
-        setState(() {});
-      }
-    } catch (e) {
-      _showError('Erreur d\'initialisation: $e');
-    }
-  }
-
-  Future<void> _captureAndProcess() async {
-    if (_isProcessing || _cameraController == null) return;
-
-    setState(() {
-      _isProcessing = true;
-      _feedbackMessage = 'Analyse en cours...';
-    });
-
-    try {
-      final XFile imageFile = await _cameraController!.takePicture();
-      final InputImage inputImage = InputImage.fromFilePath(imageFile.path);
-
-      final recognizedText = await _textRecognizer.processImage(inputImage);
-
-      // Supprimer le fichier temporaire
-      await File(imageFile.path).delete();
-
-      _extractIdentifier(recognizedText.text);
-    } catch (e) {
-      setState(() {
-        _feedbackMessage = 'Erreur: ${e.toString()}';
-      });
-      debugPrint('Erreur capture: $e');
-    } finally {
-      setState(() {
-        _isProcessing = false;
-      });
-
-      // Effacer le message après 2 secondes
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted && _detectedIdentifier == null) {
-          setState(() {
-            _feedbackMessage = null;
-          });
-        }
-      });
-    }
-  }
-
-  void _extractIdentifier(String text) {
-    debugPrint('Texte reconnu: $text');
-
-    final lines = text.split('\n');
-
-    for (final line in lines) {
-      final cleaned = line
-          .replaceAll(RegExp(r'\s+'), '')
-          .toUpperCase()
-          .replaceAll('O', '0')
-          .replaceAll('I', '1')
-          .replaceAll('S', '5');
-
-      if (_pattern.hasMatch(cleaned)) {
-        _onIdentifierFound(cleaned);
-        return;
-      }
-
-      final matches = RegExp(r'[A-Z0-9]{6,12}').allMatches(cleaned);
-      for (final match in matches) {
-        final candidate = match.group(0)!;
-        if (_pattern.hasMatch(candidate)) {
-          _onIdentifierFound(candidate);
-          return;
-        }
-      }
-    }
-
-    setState(() {
-      _feedbackMessage = 'Aucun identifiant trouvé. Réessayez.';
-    });
-  }
-
-  void _onIdentifierFound(String identifier) {
-    setState(() {
-      _detectedIdentifier = identifier;
-      _feedbackMessage = 'Identifiant détecté !';
-    });
-
-    HapticFeedback.lightImpact();
-
-    Future.delayed(const Duration(milliseconds: 500), () {
-      widget.onIdentifierDetected(identifier);
-    });
-  }
-
-  void _showPermissionDeniedDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Permission requise'),
-        content: const Text(
-          'L\'accès à la caméra est nécessaire pour scanner les fiches.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              openAppSettings();
-            },
-            child: const Text('Paramètres'),
-          ),
+{
+    "token": {
+        "access_token": "",
+        "refresh_token": ""
+    },
+    "userinfo": {
+        "id": "68ac4e448f2b158006528b0e",
+        "username": "agent-001@gmail.com",
+        "is_active": true,
+        "roles": [
+            {
+                "created_at": "2025-05-18T11:04:43.598000",
+                "updated_at": "2025-08-22T23:50:54.246000",
+                "name": "agent",
+                "description": null,
+                "id": "682cb0812f8dbc359b2fe8e7",
+                "slug": "agent",
+                "permissions": [
+                    "feedbacks:can-change",
+                    "kyb:can-read-crops"
+                ]
+            }
         ],
-      ),
-    );
-  }
-
-  void _showError(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
-  }
-
-  @override
-  void dispose() {
-    _cameraController?.dispose();
-    _textRecognizer.close();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_cameraController == null || !_cameraController!.value.isInitialized) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        "is_superuser": false,
+        "must_change_password": true,
+        "permissions": [],
+        "created_at": "2025-08-25T11:51:32.533000",
+        "updated_at": "2026-01-20T08:54:22.081084+00:00"
     }
-
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          CameraPreview(_cameraController!),
-
-          CustomPaint(
-            painter: ScannerOverlayPainter(
-              scanAreaRect: _getScanAreaRect(),
-              isDetected: _detectedIdentifier != null,
-            ),
-          ),
-
-          _buildTopBar(),
-
-          if (_feedbackMessage != null) _buildFeedback(),
-
-          _buildInstructions(),
-        ],
-      ),
-      floatingActionButton: _detectedIdentifier == null
-          ? FloatingActionButton.extended(
-              onPressed: _isProcessing ? null : _captureAndProcess,
-              backgroundColor: _isProcessing ? Colors.grey : Colors.blue,
-              icon: _isProcessing
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : const Icon(Icons.camera),
-              label: Text(_isProcessing ? 'Analyse...' : 'Scanner'),
-            )
-          : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-    );
-  }
-
-  Rect _getScanAreaRect() {
-    final size = MediaQuery.of(context).size;
-    const double scanAreaWidth = 300.0;
-    const double scanAreaHeight = 100.0;
-
-    return Rect.fromCenter(
-      center: Offset(size.width / 2, size.height / 2),
-      width: scanAreaWidth,
-      height: scanAreaHeight,
-    );
-  }
-
-  Widget _buildTopBar() {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.close, color: Colors.white, size: 28),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFeedback() {
-    final isSuccess = _detectedIdentifier != null;
-
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(height: 150),
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            decoration: BoxDecoration(
-              color: isSuccess ? Colors.green : Colors.orange,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              children: [
-                Icon(
-                  isSuccess ? Icons.check_circle : Icons.info,
-                  color: Colors.white,
-                  size: 48,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  _feedbackMessage ?? '',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                if (_detectedIdentifier != null) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    _detectedIdentifier!,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 2,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInstructions() {
-    return Positioned(
-      bottom: 100,
-      left: 0,
-      right: 0,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        margin: const EdgeInsets.symmetric(horizontal: 16),
-        decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.7),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.document_scanner, color: Colors.white, size: 32),
-            const SizedBox(height: 8),
-            const Text(
-              'Placez le numéro dans le cadre',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'puis appuyez sur Scanner',
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.8),
-                fontSize: 14,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
-// Réutiliser le même ScannerOverlayPainter du code précédent
-class ScannerOverlayPainter extends CustomPainter {
-  final Rect scanAreaRect;
-  final bool isDetected;
-
-  ScannerOverlayPainter({required this.scanAreaRect, required this.isDetected});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final backgroundPath = Path()
-      ..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
-    final scanAreaPath = Path()
-      ..addRRect(
-        RRect.fromRectAndRadius(scanAreaRect, const Radius.circular(12)),
-      );
-    final overlayPath = Path.combine(
-      PathOperation.difference,
-      backgroundPath,
-      scanAreaPath,
-    );
-
-    canvas.drawPath(
-      overlayPath,
-      Paint()..color = Colors.black.withOpacity(0.6),
-    );
-
-    final borderPaint = Paint()
-      ..color = isDetected ? Colors.green : Colors.white
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.0;
-
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(scanAreaRect, const Radius.circular(12)),
-      borderPaint,
-    );
-
-    _drawCorners(canvas, scanAreaRect, isDetected);
-  }
-
-  void _drawCorners(Canvas canvas, Rect rect, bool detected) {
-    final paint = Paint()
-      ..color = detected ? Colors.green : Colors.white
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 5.0
-      ..strokeCap = StrokeCap.round;
-
-    const cornerLength = 24.0;
-
-    canvas.drawLine(
-      rect.topLeft,
-      rect.topLeft + const Offset(cornerLength, 0),
-      paint,
-    );
-    canvas.drawLine(
-      rect.topLeft,
-      rect.topLeft + const Offset(0, cornerLength),
-      paint,
-    );
-
-    canvas.drawLine(
-      rect.topRight,
-      rect.topRight + const Offset(-cornerLength, 0),
-      paint,
-    );
-    canvas.drawLine(
-      rect.topRight,
-      rect.topRight + const Offset(0, cornerLength),
-      paint,
-    );
-
-    canvas.drawLine(
-      rect.bottomLeft,
-      rect.bottomLeft + const Offset(cornerLength, 0),
-      paint,
-    );
-    canvas.drawLine(
-      rect.bottomLeft,
-      rect.bottomLeft + const Offset(0, -cornerLength),
-      paint,
-    );
-
-    canvas.drawLine(
-      rect.bottomRight,
-      rect.bottomRight + const Offset(-cornerLength, 0),
-      paint,
-    );
-    canvas.drawLine(
-      rect.bottomRight,
-      rect.bottomRight + const Offset(0, -cornerLength),
-      paint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(ScannerOverlayPainter oldDelegate) {
-    return oldDelegate.isDetected != isDetected;
-  }
+Ensuite, on tape sur un autre endpoint, on envoie le token, on recupere le profil de l'utilisateur. Exemple de requete:
+GET /profiles/me avec le authorization en parametre
+Exemple de réponse success :
+{
+  "matricule": "string",
+  "fullname": "string",
+  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "is_active": true,
+  "metadata": {
+    "additionalProp1": {}
+  },
+  "created_at": "2026-01-23T16:02:07.161Z",
+  "updated_at": "2026-01-23T16:02:07.161Z"
 }
 
-import 'package:flutter/material.dart';
-import 'package:ft_ocr/simple_scanner.dart';
-import 'package:ft_ocr/transfert_sheet_scanner.dart';
+Si must_change_password est true, on redirige l'utilisateur vers la page de changement de mot de passe : PUT /api/auth/change-password/{id}, on envoie un mot de passe {"password": "string"}
+Exemple de reponse success :
+{"message": "Password successfully changed !"}
 
-class TransferSheetFormPage extends StatefulWidget {
-  const TransferSheetFormPage({Key? key}) : super(key: key);
+Met à jour la page de profile (ProfilePage) avec les informations de l'utilisateur et le bouton de deconnexion.
 
-  @override
-  State<TransferSheetFormPage> createState() => _TransferSheetFormPageState();
-}
+Après la connexion de l’utilisateur, et afin de permettre à l’application de fonctionner en mode hors ligne, certaines données de référence sont récupérées et stockées localement. Utilise le token pour authentifier les requetes.
 
-class _TransferSheetFormPageState extends State<TransferSheetFormPage> {
-  final TextEditingController _identifierController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
+La première catégorie de données concerne la répartition géographique : régions, départements, sous-préfectures, secteurs, zones de dénombrement (ZD), localites et quarters.
 
-  void _openScanner() async {
-    final result = await Navigator.push<String>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SimpleScannerAlternative(
-          onIdentifierDetected: (identifier) {
-            Navigator.pop(context, identifier);
-          },
-          identifierPattern: RegExp(r'\b\d{5,7}\b'),
-        ),
-      ),
-    );
+Détermination de la région de l’utilisateur
 
-    if (result != null) {
-      setState(() {
-        _identifierController.text = result;
-      });
+Si le champ region est renseigné dans le formulaire de connexion, cette valeur est utilisée.
 
-      // Optionnel : Validation automatique ou sauvegarde
-      _validateAndSubmit();
+Sinon, la région est récupérée depuis les métadonnées du profil utilisateur (additionalProp1).
+
+Récupération hiérarchique des données
+
+À partir de la région identifiée, les données sont récupérées de manière hiérarchique :
+
+Récupération des départements associés à la région
+
+Pour chaque département, récupération des sous-préfectures
+
+Pour chaque sous-préfecture, récupération des secteurs
+
+Pour chaque secteur, récupération des zones de dénombrement (ZD)
+
+Cette approche par itération permet d’obtenir l’ensemble complet de la répartition géographique propre à l’utilisateur, qui est ensuite persistée en local pour une utilisation hors ligne.
+
+Endpoints utilisés
+
+GET /territories/regions/{region_id}/departments
+
+GET /territories/departments/{department_id}/sub-prefectures
+
+GET /territories/sub-prefectures/{sub_prefecture_id}/sectors
+
+GET /territories/sectors/{sector_id}/zds
+
+GET /territories/zds/{zd_id}/localites
+
+GET /territories/localites/{localite_id}/quarters
+
+Utilisation dans l’application
+
+Dans la page NewTransfertPage, les listes (départements, sous-préfectures, secteurs, ZD) sont initialisées à partir des données stockées localement.
+
+Les champs du formulaire utilisent des listes déroulantes avec recherche, permettant une sélection fluide même en mode hors ligne : regionController, departementController, sousprefectureController, villageController = sectors
+
+La deuxieme catégorie de données concerne les nom de magasins (warehouse): recupère la liste des warehouses stocker en local et utiliser dans le formulaire NewTransfertPage, le champs nomMagasinController.Champ liste déroulante avec recherche
+
+Exemple de réponses :
+{
+  "items": [
+    {
+      "id": "string",
+      "code": "string",
+      "name": "string",
+      "region_id": "string"
     }
-  }
-
-  void _validateAndSubmit() {
-    if (_formKey.currentState!.validate()) {
-      // Traiter le formulaire
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Fiche ${_identifierController.text} enregistrée'),
-          backgroundColor: Colors.green,
-        ),
-      );
+  ],
+  "total": 0,
+  "page": 1,
+  "size": 1,
+  "pages": 0
+}
+{
+  "items": [
+    {
+      "id": "string",
+      "code": "string",
+      "name": "string",
+      "department_id": "string"
     }
-  }
-
-  @override
-  void dispose() {
-    _identifierController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Numérisation Fiche de Transfert')),
-      body: Form(
-        key: _formKey,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Champ d'identifiant avec bouton de scan
-              TextFormField(
-                controller: _identifierController,
-                decoration: InputDecoration(
-                  labelText: 'Numéro de fiche',
-                  hintText: 'Scannez ou saisissez le numéro',
-                  border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.qr_code_scanner),
-                    onPressed: _openScanner,
-                    tooltip: 'Scanner la fiche',
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Veuillez saisir ou scanner un numéro';
-                  }
-                  return null;
-                },
-                textCapitalization: TextCapitalization.characters,
-              ),
-
-              const SizedBox(height: 24),
-
-              // Bouton de scan proéminent
-              ElevatedButton.icon(
-                onPressed: _openScanner,
-                icon: const Icon(Icons.document_scanner),
-                label: const Text('Scanner la fiche'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  textStyle: const TextStyle(fontSize: 16),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Autres champs du formulaire
-              TextFormField(
-                decoration: const InputDecoration(
-                  labelText: 'Description',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 3,
-              ),
-
-              const Spacer(),
-
-              // Bouton de validation
-              ElevatedButton(
-                onPressed: _validateAndSubmit,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: Colors.green,
-                ),
-                child: const Text(
-                  'Valider la numérisation',
-                  style: TextStyle(fontSize: 16),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  ],
+  "total": 0,
+  "page": 1,
+  "size": 1,
+  "pages": 0
 }
 
-// Widget alternatif : Bouton flottant pour scanner
-class TransferSheetFormWithFAB extends StatefulWidget {
-  const TransferSheetFormWithFAB({Key? key}) : super(key: key);
-
-  @override
-  State<TransferSheetFormWithFAB> createState() =>
-      _TransferSheetFormWithFABState();
+{
+  "items": [
+    {
+      "id": "string",
+      "code": "string",
+      "name": "string",
+      "sub_prefecture_id": "string"
+    }
+  ],
+  "total": 0,
+  "page": 1,
+  "size": 1,
+  "pages": 0
 }
 
-class _TransferSheetFormWithFABState extends State<TransferSheetFormWithFAB> {
-  final TextEditingController _identifierController = TextEditingController();
-
-  void _openScanner() async {
-    final result = await Navigator.push<String>(
-      context,
-      MaterialPageRoute(
-        fullscreenDialog: true,
-        builder: (context) => TransferSheetScanner(
-          onIdentifierDetected: (identifier) {
-            Navigator.pop(context, identifier);
-          },
-        ),
-      ),
-    );
-
-    if (result != null) {
-      setState(() {
-        _identifierController.text = result;
-      });
+Pour les warehouse :
+{
+  "items": [
+    {
+      "code": "string",
+      "name": "string",
+      "type": "string",
+      "capacity": 0,
+      "occupancy_rate": 0,
+      "locality": "string",
+      "gps_lat": 0,
+      "gps_lon": 0,
+      "construction_date": "2026-01-23",
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "status": "PENDING",
+      "is_active": true,
+      "created_at": "2026-01-23T17:02:52.432Z",
+      "updated_at": "2026-01-23T17:02:52.432Z"
     }
-  }
+  ],
+  "total": 0,
+  "page": 1,
+  "size": 1,
+  "pages": 0
+}
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Nouvelle Fiche')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextFormField(
-              controller: _identifierController,
-              decoration: const InputDecoration(
-                labelText: 'Numéro de fiche',
-                border: OutlineInputBorder(),
-              ),
-              readOnly: true, // Seulement par scan
-            ),
-            // Autres champs...
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _openScanner,
-        icon: const Icon(Icons.document_scanner),
-        label: const Text('Scanner'),
-      ),
-    );
-  }
+
+Mets tous les bases url dans .env avec flutter_dotenv.
+Base url auth : https://coco-backend.com/api/auth/
+Base url user : https://coco-backend.com/profiles/
+base url territories(répartition géographique): https://coco-backend.com/territories/
+base url warehouses: https://coco-backend.com/warehouse/
+
+
+Les messages d'erreur : 422
+{
+  "code_error": "validation/request-validation-error",
+  "details": [
+    {
+      "field": "body.25",
+      "message": "JSON decode error"
+    }
+  ]
+}
+Les messages d'erreur : autre codes:
+{
+  "code_error": "validation/xxxxxx-error",
+  "message": ""
 }

@@ -29,7 +29,7 @@ class TransfertRepositoryImpl implements TransfertRepository {
   final int _ussdLimit = USSD_CHAR_LIMIT;
 
   // --- CONFIGURATION USSD FIXE (HARDCODED) ---
-  // On ne garde que l'essentiel pour l'USSD afin de limiter le nombre de SMS
+  // On ne garde que l'essentiel pour l'USSD afin de limiter le nombre de Session
   final List<String> _ussdFieldsWhitelist = [
     'typeTransfert',
     'numeroFiche',
@@ -79,8 +79,9 @@ class TransfertRepositoryImpl implements TransfertRepository {
 
       final tlvFields = TlvFieldMappings.mapFromDto(
         fieldsMap,
-        submissionId,
         transfert.agentId,
+        "2025-2026",
+        transfert.receipts.length.toString(),
         keysToKeep: isActuallyUssd ? _ussdFieldsWhitelist : null,
       );
 
@@ -262,7 +263,7 @@ class TransfertRepositoryImpl implements TransfertRepository {
         final url = await remoteDataSource.getUploadUrl(t.submissionId);
         final fields = jsonDecode(t.fieldsJson ?? '{}') as Map<String, dynamic>;
 
-        // 1️⃣ Calcul taille totale
+        // Calcul taille totale
         int totalBytes = 0;
         for (var r in t.receipts) {
           if (r.imagePath.isNotEmpty) {

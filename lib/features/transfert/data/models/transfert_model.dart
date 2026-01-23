@@ -47,6 +47,7 @@ class TransfertModel extends TransfertEntity {
     super.nomChauffeur,
     super.permisConduire,
     super.prix,
+    super.photoFiche,
     super.receipts = const [],
     this.payload,
     this.encodedPreview,
@@ -57,12 +58,6 @@ class TransfertModel extends TransfertEntity {
 
   factory TransfertModel.fromMap(Map<String, dynamic> map) {
     final fields = jsonDecode(map['fieldsJson'] as String? ?? '{}');
-
-    // Deserialize receipts from fieldsJson or a separate column if we added one.
-    // For now, let's assume they are part of fieldsJson or we need to parse them.
-    // Since we are refactoring, let's assume we store them in fieldsJson for simplicity
-    // or we can add a new column. Given the constraints, let's look for them in fieldsJson.
-
     List<ReceiptEntity> receiptsList = [];
     if (fields['receipts'] != null) {
       receiptsList = (fields['receipts'] as List)

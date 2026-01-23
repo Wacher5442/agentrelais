@@ -41,6 +41,7 @@ class TransfertEntity extends Equatable {
   final String? permisConduire;
   final String? prix;
   final List<ReceiptEntity> receipts;
+  final String? photoFiche;
 
   // Configuration pour l'envoi partiel USSD
   final List<String>? ussdFields;
@@ -81,6 +82,7 @@ class TransfertEntity extends Equatable {
     this.nomChauffeur,
     this.permisConduire,
     this.prix,
+    this.photoFiche,
     this.receipts = const [],
     this.ussdFields,
   });
