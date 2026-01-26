@@ -114,7 +114,7 @@ void main() async {
   final loginUseCase = LoginUseCase(authRepo);
   final logoutUseCase = LogoutUseCase(authRepo);
   final checkAuthUseCase = CheckAuthUseCase(authRepo);
-  final changePasswordUseCase = ChangePasswordUseCase(authRepo); // New
+  final changePasswordUseCase = ChangePasswordUseCase(authRepo);
 
   final transfertSubmissionBloc = TransfertSubmissionBloc(
     submitUseCase: submitUseCase,
@@ -135,7 +135,6 @@ void main() async {
   );
 
   final changePasswordBloc = ChangePasswordBloc(
-    // New
     changePasswordUseCase: changePasswordUseCase,
   );
 
@@ -145,7 +144,7 @@ void main() async {
       listBloc: transfertListBloc,
       loginBloc: loginBloc,
       syncBloc: syncBloc,
-      changePasswordBloc: changePasswordBloc, // New
+      changePasswordBloc: changePasswordBloc,
     ),
   );
 }
@@ -155,7 +154,7 @@ class MyApp extends StatelessWidget {
   final TransfertListBloc listBloc;
   final LoginBloc loginBloc;
   final SyncBloc syncBloc;
-  final ChangePasswordBloc changePasswordBloc; // New
+  final ChangePasswordBloc changePasswordBloc;
 
   const MyApp({
     Key? key,
@@ -163,7 +162,7 @@ class MyApp extends StatelessWidget {
     required this.listBloc,
     required this.loginBloc,
     required this.syncBloc,
-    required this.changePasswordBloc, // New
+    required this.changePasswordBloc,
   }) : super(key: key);
 
   @override

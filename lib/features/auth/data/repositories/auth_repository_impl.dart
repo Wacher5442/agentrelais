@@ -1,4 +1,5 @@
 import 'package:fpdart/fpdart.dart';
+import '../../../../core/constants/ussd_constants.dart';
 import '../../../../core/errors/failure.dart';
 import '../../../../core/network/exceptions.dart';
 import '../../../../core/network/network_info.dart';
@@ -134,29 +135,29 @@ class AuthRepositoryImpl implements AuthRepository {
 
   // --- Dynamic Commodity & Campaign Management ---
 
-  @override
-  Future<Either<Failure, List<CommodityEntity>>>
-  fetchAndStoreCommodities() async {
-    if (await networkInfo.isConnected) {
-      try {
-        final commodities = await remoteDataSource.getCommodities();
-        await localDataSource.saveCommodities(commodities);
-        return Right(commodities);
-      } on ServerException catch (e) {
-        return Left(ServerFailure(e.message));
-      } catch (e) {
-        return Left(ServerFailure(e.toString()));
-      }
-    } else {
-      // Return cached if offline
-      try {
-        final local = await localDataSource.getCommodities();
-        return Right(local);
-      } catch (e) {
-        return Left(CacheFailure("Failed to load cached commodities"));
-      }
-    }
-  }
+  // @override
+  // Future<Either<Failure, List<CommodityEntity>>>
+  // fetchAndStoreCommodities() async {
+  //   if (await networkInfo.isConnected) {
+  //     try {
+  //       final commodities = await remoteDataSource.getCommodities();
+  //       await localDataSource.saveCommodities(commodities);
+  //       return Right(commodities);
+  //     } on ServerException catch (e) {
+  //       return Left(ServerFailure(e.message));
+  //     } catch (e) {
+  //       return Left(ServerFailure(e.toString()));
+  //     }
+  //   } else {
+  //     // Return cached if offline
+  //     try {
+  //       final local = await localDataSource.getCommodities();
+  //       return Right(local);
+  //     } catch (e) {
+  //       return Left(CacheFailure("Failed to load cached commodities"));
+  //     }
+  //   }
+  // }
 
   @override
   Future<Either<Failure, List<CampaignEntity>>>
@@ -196,15 +197,16 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, CampaignEntity?>> getActiveCampaign() async {
     try {
-      final commodityCodeResult = await getActiveCommodityCode();
-      return await commodityCodeResult.fold((failure) async => Left(failure), (
-        code,
-      ) async {
-        final campaign = await localDataSource.getActiveCampaignForCommodity(
-          code,
-        );
-        return Right(campaign);
-      });
+      // final commodityCodeResult = await getActiveCommodityCode();
+      // return await commodityCodeResult.fold((failure) async => Left(failure), (
+      //   code,
+      // ) async {
+
+      // });
+      final campaign = await localDataSource.getActiveCampaignForCommodity(
+        DEFAULT_COMMODITY_CODE,
+      );
+      return Right(campaign);
     } catch (e) {
       return Left(CacheFailure("Failed to get active campaign: $e"));
     }

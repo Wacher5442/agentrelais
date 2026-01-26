@@ -40,7 +40,12 @@ class TransfertRemoteDataSource {
     final resp = await dioClient.put(
       url,
       data: payload,
-      options: Options(headers: {'Content-Type': 'application/json'}),
+      options: Options(
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Amz-Meta-Source': 'http',
+        },
+      ),
     );
 
     if (resp.statusCode != 200 && resp.statusCode != 201) {

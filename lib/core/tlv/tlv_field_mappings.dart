@@ -52,10 +52,13 @@ class TlvFieldMappings {
     String receiptCount, {
     List<String>? keysToKeep,
   }) {
+    final rawDate = json['date'];
+    final ussdDate = _formatToUssdDate(rawDate);
+
     // Définition de tous les champs possibles mappés à leurs tags
     final allPossibleFields = <String, TlvField>{
       'numeroFiche': TlvField(numeroFiche, _utf8(json['numeroFiche'])),
-      'date': TlvField(date, _utf8(json['date'])),
+      'date': TlvField(date, _utf8(ussdDate)),
       'typeTransfert': TlvField(typeTransfert, _utf8(json['typeTransfert'])),
       'sticker': TlvField(sticker, _utf8(json['sticker'])),
       'sousPrefecture': TlvField(sousPrefecture, _utf8(json['sousPrefecture'])),
@@ -108,5 +111,35 @@ class TlvFieldMappings {
     log("fields ussd $fields");
 
     return fields.where((field) => field.value.isNotEmpty).toList();
+  }
+
+  static String _formatToUssdDate(String? dateStr) {
+    if (dateStr == null || dateStr.isEmpty) return '';
+
+    try {
+      // Cas 1: Si la date arrive au format JJ/MM/AAAA (séparateurs courants)
+      if (dateStr.contains('/')) {
+        final parts = dateStr.split('/');
+        if (parts.length == 3) {
+          final day = parts[0].padLeft(2, '0');
+          final month = parts[1].padLeft(2, '0');
+          final year = parts[2];
+          return '$year$month$day'; // YYYYMMDD
+        }
+      }
+
+      // Cas 2: Si c'est déjà un DateTime ISO ou autre, on tente un parsing
+      final dt = DateTime.tryParse(dateStr);
+      if (dt != null) {
+        final y = dt.year.toString();
+        final m = dt.month.toString().padLeft(2, '0');
+        final d = dt.day.toString().padLeft(2, '0');
+        return '$y$m$d';
+      }
+    } catch (e) {
+      log("Erreur formatage date USSD: $e");
+    }
+
+    return dateStr; // Retourne tel quel si le format est inconnu
   }
 }

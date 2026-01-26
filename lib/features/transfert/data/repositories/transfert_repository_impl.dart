@@ -127,9 +127,22 @@ class TransfertRepositoryImpl implements TransfertRepository {
           );
 
           // NEW: Submit transfer data separately
+          final Map<String, dynamic> httpFields = Map.from(fieldsMap);
+          httpFields.remove('receipts');
+
+          // Convert main image to base64 if it exists
+          if (transfert.image != null && transfert.image!.isNotEmpty) {
+            final imageFile = File(transfert.image!);
+            if (await imageFile.exists()) {
+              final bytes = await imageFile.readAsBytes();
+              httpFields['image'] = base64Encode(bytes);
+              log('Main image converted to Base64 (${bytes.length} bytes)');
+            }
+          }
+
           final transferPayload = {
             "form_id": transfert.formId,
-            "fields": fieldsMap,
+            "fields": httpFields,
           };
 
           await remoteDataSource.uploadTransfert(
@@ -320,8 +333,21 @@ class TransfertRepositoryImpl implements TransfertRepository {
           name: 'SYNC_HTTP',
         );
 
+        final Map<String, dynamic> httpFields = Map.from(fields);
+        httpFields.remove('receipts');
+
+        // Convert main image to base64 if it exists
+        if (t.image != null && t.image!.isNotEmpty) {
+          final imageFile = File(t.image!);
+          if (await imageFile.exists()) {
+            final bytes = await imageFile.readAsBytes();
+            httpFields['image'] = base64Encode(bytes);
+            log('Main image converted to Base64 (${bytes.length} bytes)');
+          }
+        }
+
         // Submit transfer data
-        final transferPayload = {"form_id": t.formId, "fields": fields};
+        final transferPayload = {"form_id": t.formId, "fields": httpFields};
 
         await remoteDataSource.uploadTransfert(
           url: url,

@@ -205,12 +205,15 @@ class DbHelper {
         type TEXT,
         capacity INTEGER,
         occupancy_rate REAL,
+        campaign_code TEXT,
         locality TEXT,
         gps_lat REAL,
         gps_lon REAL,
         construction_date TEXT,
         status TEXT,
-        is_active INTEGER
+        is_active INTEGER,
+        created_at TEXT,
+        updated_at TEXT
       )
     ''');
   }

@@ -111,7 +111,7 @@ class TransfertModel extends TransfertEntity {
       nomChauffeur: fields['nomChauffeur'],
       permisConduire: fields['permisConduire'],
       prix: fields['prix'],
-      image: fields['image'],
+      image: map['image'] ?? fields['image'],
     );
   }
 
@@ -133,6 +133,7 @@ class TransfertModel extends TransfertEntity {
       'totalParts': totalParts,
       'partsSent': partsSent,
       'fieldsJson': fieldsJson,
+      'image': image,
     };
   }
 }

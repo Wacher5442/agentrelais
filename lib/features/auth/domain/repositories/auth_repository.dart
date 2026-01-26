@@ -17,7 +17,7 @@ abstract class AuthRepository {
   Future<String?> getActiveRegion();
 
   // Commodity & Campaign Management
-  Future<Either<Failure, List<CommodityEntity>>> fetchAndStoreCommodities();
+  // Future<Either<Failure, List<CommodityEntity>>> fetchAndStoreCommodities();
   Future<Either<Failure, List<CampaignEntity>>> fetchAndStoreOpenCampaigns();
   Future<Either<Failure, String>> getActiveCommodityCode();
   Future<Either<Failure, CampaignEntity?>> getActiveCampaign();

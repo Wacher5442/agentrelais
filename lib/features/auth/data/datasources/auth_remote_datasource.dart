@@ -12,7 +12,7 @@ abstract class AuthRemoteDataSource {
   Future<Map<String, dynamic>> login(String username, String password);
   Future<UserModel> getProfile();
   Future<void> changePassword(String userId, String newPassword);
-  Future<List<CommodityModel>> getCommodities();
+  // Future<List<CommodityModel>> getCommodities();
   Future<List<CampaignModel>> getOpenCampaigns();
 }
 
@@ -61,18 +61,18 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
   }
 
-  @override
-  Future<List<CommodityModel>> getCommodities() async {
-    try {
-      final response = await dioClient.get('/commodities');
-      final items = response.data['items'] as List;
-      log('commodities response.data: ${response.data}');
-      return items.map((item) => CommodityModel.fromJson(item)).toList();
-    } on DioException catch (e) {
-      log('Exception commodities: ${e.message}');
-      throw ServerException.fromDioError(e);
-    }
-  }
+  // @override
+  // Future<List<CommodityModel>> getCommodities() async {
+  //   try {
+  //     final response = await dioClient.get('/commodities');
+  //     final items = response.data['items'] as List;
+  //     log('commodities response.data: ${response.data}');
+  //     return items.map((item) => CommodityModel.fromJson(item)).toList();
+  //   } on DioException catch (e) {
+  //     log('Exception commodities: ${e.message}');
+  //     throw ServerException.fromDioError(e);
+  //   }
+  // }
 
   @override
   Future<List<CampaignModel>> getOpenCampaigns() async {
