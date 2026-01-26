@@ -1,4 +1,9 @@
-import 'package:agent_relais/core/constants/ussd_constants.dart';
+import 'package:agent_relais/features/auth/presentation/bloc/login_bloc.dart';
+import 'package:agent_relais/features/reference_data/data/datasources/reference_local_datasource.dart';
+import 'package:agent_relais/features/reference_data/data/datasources/reference_remote_datasource.dart';
+import 'package:agent_relais/features/reference_data/presentation/bloc/sync_bloc.dart';
+import 'package:agent_relais/features/reference_data/presentation/pages/sync_page.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:agent_relais/core/db/db_helper.dart';
 import 'package:agent_relais/core/services/background_sync_service.dart';
 import 'package:agent_relais/core/services/sync_service.dart';
@@ -8,6 +13,7 @@ import 'package:agent_relais/features/transfert/presentation/bloc/transfert_subm
 import 'package:agent_relais/features/transfert/presentation/pages/confirmation_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 
 import 'core/constants/route_constants.dart';
@@ -24,23 +30,45 @@ import 'features/transfert/domain/usecases/sync_pending_transferts.dart';
 import 'features/transfert/presentation/bloc/list/transfert_list_bloc.dart';
 import 'features/transfert/presentation/pages/new_transfert_page.dart';
 import 'features/transfert/presentation/pages/tranferts_page.dart';
+import 'package:agent_relais/features/auth/data/datasources/auth_local_datasource.dart';
+import 'package:agent_relais/features/auth/data/datasources/auth_remote_datasource.dart';
+import 'package:agent_relais/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:agent_relais/features/auth/domain/usecases/login_usecase.dart';
+import 'package:agent_relais/features/auth/domain/usecases/logout_usecase.dart';
+import 'package:agent_relais/features/auth/domain/usecases/check_auth_usecase.dart';
+
+import 'features/auth/domain/usecases/change_password_usecase.dart';
+import 'features/auth/presentation/bloc/change_password_bloc.dart';
+import 'features/auth/presentation/pages/change_password_page.dart';
+
+// ... (existing imports)
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // 0. Environment Init
+  await dotenv.load(fileName: ".env");
+
   // 0. Background Sync Init
   await BackgroundSyncService.initialize();
   await BackgroundSyncService.registerPeriodicTask();
-
   // 1. Services Core
   final dbHelper = DbHelper.instance;
-  final dioClient = DioClient(baseUrl: BASE_URL);
+  final dioClient = DioClient(
+    baseUrl: dotenv.env['BASE_URL_AUTH'] ?? 'https://coco-backend.com/auth/',
+  );
   final networkInfo = NetworkInfoImpl(InternetConnection());
   final ussdTransport = MockUssdTransport();
 
   // 3. Datasources
   final transfertRemoteDs = TransfertRemoteDataSource(dioClient);
   final transfertLocalDs = TransfertLocalDataSourceImpl(dbHelper);
+  var authRemoteDs = AuthRemoteDataSourceImpl(dioClient);
+  final authLocalDs = AuthLocalDataSourceImpl(FlutterSecureStorage());
+
+  // Reference Data Logic
+  final refRemoteDs = ReferenceRemoteDataSource(dioClient);
+  final refLocalDs = ReferenceLocalDataSource(dbHelper);
 
   // 4. Repository
   final transfertRepo = TransfertRepositoryImpl(
@@ -50,6 +78,11 @@ void main() async {
     networkInfo: networkInfo,
     //serverStatusChecker: serverStatusChecker,
   );
+  final authRepo = AuthRepositoryImpl(
+    remoteDataSource: authRemoteDs,
+    localDataSource: authLocalDs,
+    networkInfo: networkInfo,
+  );
 
   // 5. Sync Service (Foreground)
   final syncService = SyncService(
@@ -58,12 +91,23 @@ void main() async {
   );
   syncService.initialize();
 
+  // 6. Blocs
+  final syncBloc = SyncBloc(
+    remoteDataSource: refRemoteDs,
+    localDataSource: refLocalDs,
+    authLocalDataSource: authLocalDs,
+    networkInfo: networkInfo,
+  );
+
   // 6. UseCases
   final submitUseCase = SubmitTransfertUseCase(repo: transfertRepo);
   final syncUseCase = SyncPendingTransferts(transfertRepo);
   final getTransfertsUseCase = GetTransfertsUseCase(transfertRepo);
+  final loginUseCase = LoginUseCase(authRepo);
+  final logoutUseCase = LogoutUseCase(authRepo);
+  final checkAuthUseCase = CheckAuthUseCase(authRepo);
+  final changePasswordUseCase = ChangePasswordUseCase(authRepo); // New
 
-  // 6. Blocs
   final transfertSubmissionBloc = TransfertSubmissionBloc(
     submitUseCase: submitUseCase,
     syncUseCase: syncUseCase,
@@ -74,17 +118,45 @@ void main() async {
     getTransfertsUseCase: getTransfertsUseCase,
   );
 
+  // ... (existing blocs)
+
+  final loginBloc = LoginBloc(
+    loginUseCase: loginUseCase,
+    logoutUseCase: logoutUseCase,
+    checkAuthUseCase: checkAuthUseCase,
+  );
+
+  final changePasswordBloc = ChangePasswordBloc(
+    // New
+    changePasswordUseCase: changePasswordUseCase,
+  );
+
   runApp(
-    MyApp(submissionBloc: transfertSubmissionBloc, listBloc: transfertListBloc),
+    MyApp(
+      submissionBloc: transfertSubmissionBloc,
+      listBloc: transfertListBloc,
+      loginBloc: loginBloc,
+      syncBloc: syncBloc,
+      changePasswordBloc: changePasswordBloc, // New
+    ),
   );
 }
 
 class MyApp extends StatelessWidget {
   final TransfertSubmissionBloc submissionBloc;
   final TransfertListBloc listBloc;
+  final LoginBloc loginBloc;
+  final SyncBloc syncBloc;
+  final ChangePasswordBloc changePasswordBloc; // New
 
-  const MyApp({Key? key, required this.submissionBloc, required this.listBloc})
-    : super(key: key);
+  const MyApp({
+    Key? key,
+    required this.submissionBloc,
+    required this.listBloc,
+    required this.loginBloc,
+    required this.syncBloc,
+    required this.changePasswordBloc, // New
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -92,6 +164,9 @@ class MyApp extends StatelessWidget {
       providers: [
         BlocProvider.value(value: submissionBloc),
         BlocProvider.value(value: listBloc),
+        BlocProvider.value(value: loginBloc),
+        BlocProvider.value(value: syncBloc),
+        BlocProvider.value(value: changePasswordBloc), // New
       ],
       child: MaterialApp(
         title: 'Agent Relais',
@@ -108,6 +183,9 @@ class MyApp extends StatelessWidget {
           RouteConstants.transfert: (context) => TranfertsPage(),
           RouteConstants.addTransfert: (context) => NewTransfertPage(),
           RouteConstants.confirmation: (context) => const ConfirmationPage(),
+          RouteConstants.changePassword: (context) =>
+              const ChangePasswordPage(),
+          RouteConstants.sync: (context) => const SyncPage(),
         },
       ),
     );

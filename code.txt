@@ -9,7 +9,7 @@ En fonction de l'agent connecté, son rôle(agent, prestataire), la home page (d
 
 Aussi, Remplace agentId par le username de l'utilisateur connecté dans les transferts(formulaire d'ajout) lors d'un ajout de transfert.
 
-Pour se connecté : POST /api/auth/login, on envoie un matricule et un mot de passe {
+Pour se connecté : POST /auth/login, on envoie un matricule et un mot de passe {
   "username": "string",
   "password": "string"
 }, on recupere un token et un refresh token. Exemple de reponse success:
@@ -54,13 +54,15 @@ Exemple de réponse success :
   "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
   "is_active": true,
   "metadata": {
-    "additionalProp1": {}
+    "civility": "",
+    "job_title": "", 
+    "place_of_work": ""
   },
   "created_at": "2026-01-23T16:02:07.161Z",
   "updated_at": "2026-01-23T16:02:07.161Z"
 }
 
-Si must_change_password est true, on redirige l'utilisateur vers la page de changement de mot de passe : PUT /api/auth/change-password/{id}, on envoie un mot de passe {"password": "string"}
+Si must_change_password est true, on redirige l'utilisateur vers la page de changement de mot de passe : PUT /change-password/{id}, on envoie un mot de passe {"password": "string"}
 Exemple de reponse success :
 {"message": "Password successfully changed !"}
 
@@ -74,7 +76,7 @@ Détermination de la région de l’utilisateur
 
 Si le champ region est renseigné dans le formulaire de connexion, cette valeur est utilisée.
 
-Sinon, la région est récupérée depuis les métadonnées du profil utilisateur (additionalProp1).
+Sinon, la région est récupérée depuis les métadonnées du profil utilisateur (place_of_work).
 
 Récupération hiérarchique des données
 
@@ -185,7 +187,7 @@ Pour les warehouse :
 
 
 Mets tous les bases url dans .env avec flutter_dotenv.
-Base url auth : https://coco-backend.com/api/auth/
+Base url auth : https://coco-backend.com/auth/
 Base url user : https://coco-backend.com/profiles/
 base url territories(répartition géographique): https://coco-backend.com/territories/
 base url warehouses: https://coco-backend.com/warehouse/
@@ -206,3 +208,38 @@ Les messages d'erreur : autre codes:
   "code_error": "validation/xxxxxx-error",
   "message": ""
 }
+
+
+// transfer_id = form_id
+// Mettre l'image de la fiche (photoFiche) en base64
+// Toutes les dates en date par http mais par ussd respecter cette nomenclature YYYYMMDD
+// receiptCount nombre de reçus à ajouter dans les metadata.
+
+Dans mon code, en tant que developpeur senior, analyse bien et intègre les modifications pour l'ajout ou soumission d'une fiche de transfert.
+1. Enlever submissionId et utiliser numeroFiche comme identifiant unique de la fiche de transfert.
+2. Ajouter un bundle id (base de données local, formulaire...) unique de la fiche de transfert. Ce bundle id va être la concatenation des numéro de réçu (receiptNumber) qu'on ajoute dans une fiche de transfert.
+3. Renommer photoFiche en image. À soumettre en base64 par http dans les fields.
+4. Changer transfer_id en form_id.
+5. En ussd, respecter cette nomenclature YYYYMMDD en int pour les dates.
+6. receiptCount est le nombre de reçus à ajouter dans les metadata.
+7. Pour soumettre les données par http, voici comment faire. On soumet les données de la fiche et les reçus separement :
+  - Lorqu'on recupére l'url presigné, on poste les données de la fiche comme ça en body : 
+    final payload = {
+      "form_id": formId,
+      "fields": fieldsMap,
+    };
+  Dans fieldsMap en plus des informations de la fiche ajoute le bundle id et la campagne.
+  Dans les metadata de l'url presigné pour poster les données, on ajoute ce parametre: X-Amz-Meta-Source : http.
+  - Pour les reçus, on recupére une url presigné pour chaque reçus et on poste le réçu en body suivant : 
+  final receiptPayload = {
+            "form_id": submissionId,
+            "fields": {
+              "bundle_id": "ETGTRFRF926",
+              "numeroRecu": receipt.receiptNumber,
+              "image": base64Image,
+              "campagne": "2025-2026",
+            },
+          }; 
+
+
+ 

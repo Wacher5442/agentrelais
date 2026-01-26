@@ -9,4 +9,6 @@ class RouteConstants {
   static const String detailReceipt = '/detailReceipt';
   static const String confirmation = '/confirmation';
   static const String profil = '/profil';
+  static const String changePassword = '/changePassword';
+  static const String sync = '/sync';
 }

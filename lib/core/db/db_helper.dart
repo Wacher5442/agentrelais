@@ -3,7 +3,7 @@ import 'package:sqflite/sqflite.dart';
 
 class DbHelper {
   static const _dbName = 'agent_app.db';
-  static const _dbVersion = 2; // Incrémenté car changement de schéma
+  static const _dbVersion = 3; // Incrémenté pour Reference Data
 
   static Database? _database;
   DbHelper._privateConstructor();
@@ -47,6 +47,8 @@ class DbHelper {
       )
     ''');
     await db.execute('CREATE INDEX idx_submission ON transferts(submissionId)');
+
+    await _createReferenceTables(db);
   }
 
   // Gestion simple de la migration si la DB existait déjà
@@ -57,6 +59,83 @@ class DbHelper {
         'ALTER TABLE transferts ADD COLUMN submissionMethod TEXT',
       );
     }
+    if (oldVersion < 3) {
+      await _createReferenceTables(db);
+    }
+  }
+
+  Future<void> _createReferenceTables(Database db) async {
+    await db.execute('''
+      CREATE TABLE regions (
+        id TEXT PRIMARY KEY,
+        code TEXT,
+        name TEXT
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE departments (
+        id TEXT PRIMARY KEY,
+        code TEXT,
+        name TEXT,
+        region_id TEXT
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE sub_prefectures (
+        id TEXT PRIMARY KEY,
+        code TEXT,
+        name TEXT,
+        department_id TEXT
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE sectors (
+        id TEXT PRIMARY KEY,
+        code TEXT,
+        name TEXT,
+        sub_prefecture_id TEXT
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE zds (
+        id TEXT PRIMARY KEY,
+        code TEXT,
+        name TEXT,
+        sector_id TEXT
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE localites (
+        id TEXT PRIMARY KEY,
+        code TEXT,
+        name TEXT,
+        zd_id TEXT
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE quarters (
+        id TEXT PRIMARY KEY,
+        code TEXT,
+        name TEXT,
+        localite_id TEXT
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE warehouses (
+        id TEXT PRIMARY KEY,
+        code TEXT,
+        name TEXT,
+        type TEXT,
+        capacity INTEGER,
+        occupancy_rate REAL,
+        locality TEXT,
+        gps_lat REAL,
+        gps_lon REAL,
+        construction_date TEXT,
+        status TEXT,
+        is_active INTEGER
+      )
+    ''');
   }
 
   Future<int> insert(String table, Map<String, Object?> values) async {

@@ -15,6 +15,9 @@ import '../bloc/transfert_submission_bloc.dart';
 import '../bloc/transfert_submission_event.dart';
 import '../bloc/transfert_submission_state.dart';
 import '../widgets/receipt_number_scanner.dart';
+import '../../../../core/widgets/searchable_dropdown.dart';
+import '../../../../features/reference_data/presentation/bloc/sync_bloc.dart';
+import '../../../../features/auth/presentation/bloc/login_bloc.dart';
 
 class NewTransfertPage extends StatefulWidget {
   const NewTransfertPage({super.key});
@@ -78,10 +81,139 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
 
   String _typeTransfert = "ORDINAIRE";
 
+  // Geo Data
+  List<Map<String, dynamic>> _warehouses = [];
+  List<Map<String, dynamic>> _regions = [];
+  List<Map<String, dynamic>> _departments = [];
+  List<Map<String, dynamic>> _subPrefectures = [];
+  List<Map<String, dynamic>> _sectors = [];
+
+  Map<String, dynamic>? _selectedRegion;
+  Map<String, dynamic>? _selectedDepartment;
+  Map<String, dynamic>? _selectedSubPrefecture;
+  Map<String, dynamic>? _selectedSector;
+
   @override
   void initState() {
     super.initState();
     _checkPermissions();
+    _loadWarehouses();
+    _loadRegions();
+  }
+
+  Future<void> _loadWarehouses() async {
+    try {
+      final items = await context.read<SyncBloc>().localDataSource.getAll(
+        'warehouses',
+      );
+      setState(() {
+        _warehouses = items;
+      });
+    } catch (e) {
+      print("Error loading warehouses: $e");
+    }
+  }
+
+  Future<void> _loadRegions() async {
+    try {
+      final items = await context.read<SyncBloc>().localDataSource.getAll(
+        'regions',
+      );
+      setState(() => _regions = items);
+
+      // Attempt to auto-select from LoginBloc Active Region
+      final loginState = context.read<LoginBloc>().state;
+      if (loginState is LoginSuccess && loginState.activeRegion.isNotEmpty) {
+        final activeRegion = loginState.activeRegion;
+        try {
+          final region = items.firstWhere(
+            (r) =>
+                (r['name'] as String).toLowerCase() ==
+                activeRegion.toLowerCase(),
+          );
+          setState(() {
+            _selectedRegion = region;
+            regionController.text = region['name'];
+          });
+          _loadDepartments(region['id']);
+        } catch (_) {
+          // Region not found or mismatch
+        }
+      }
+    } catch (e) {
+      print("Error loading regions: $e");
+    }
+  }
+
+  Future<void> _loadDepartments(String regionId) async {
+    try {
+      final items = await context.read<SyncBloc>().localDataSource.getByParent(
+        'departments',
+        'region_id',
+        regionId,
+      );
+      setState(() {
+        _departments = items;
+        _departments.sort(
+          (a, b) => (a['name'] as String).compareTo(b['name'] as String),
+        );
+        // Reset children
+        _selectedDepartment = null;
+        _selectedSubPrefecture = null;
+        _selectedSector = null;
+        _subPrefectures = [];
+        _sectors = [];
+        departementController.clear();
+        sousprefectureController.clear();
+        villageController.clear();
+      });
+    } catch (e) {
+      print("Error loading departments: $e");
+    }
+  }
+
+  Future<void> _loadSubPrefectures(String depId) async {
+    try {
+      final items = await context.read<SyncBloc>().localDataSource.getByParent(
+        'sub_prefectures',
+        'department_id',
+        depId,
+      );
+      setState(() {
+        _subPrefectures = items;
+        _subPrefectures.sort(
+          (a, b) => (a['name'] as String).compareTo(b['name'] as String),
+        );
+        // Reset children
+        _selectedSubPrefecture = null;
+        _selectedSector = null;
+        _sectors = [];
+        sousprefectureController.clear();
+        villageController.clear();
+      });
+    } catch (e) {
+      print("Error loading sub-prefectures: $e");
+    }
+  }
+
+  Future<void> _loadSectors(String subId) async {
+    try {
+      final items = await context.read<SyncBloc>().localDataSource.getByParent(
+        'sectors',
+        'sub_prefecture_id',
+        subId,
+      );
+      setState(() {
+        _sectors = items;
+        _sectors.sort(
+          (a, b) => (a['name'] as String).compareTo(b['name'] as String),
+        );
+        _selectedSector = null;
+        villageController.clear();
+      });
+    } catch (e) {
+      print("Error loading sectors: $e");
+    }
   }
 
   @override
@@ -574,33 +706,65 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
                       validator: requiredValidator,
                       keyboardType: TextInputType.datetime,
                     ),
-                    textField(
-                      regionController,
+                    SearchableDropdown<Map<String, dynamic>>(
                       label: "Région *",
-                      hint: "Ex : Poro",
-                      validator: requiredValidator,
-                      keyboardType: TextInputType.text,
+                      items: _regions,
+                      value: _selectedRegion,
+                      itemLabel: (item) => item['name'] as String,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedRegion = value;
+                          regionController.text = value?['name'] ?? "";
+                        });
+                        if (value != null)
+                          _loadDepartments(value['id'] as String);
+                      },
+                      validator: (value) => value == null ? "Requis" : null,
                     ),
-                    textField(
-                      departementController,
+                    const SizedBox(height: 10),
+                    SearchableDropdown<Map<String, dynamic>>(
                       label: "Département *",
-                      hint: "Ex : Korhogo",
-                      validator: requiredValidator,
-                      keyboardType: TextInputType.text,
+                      items: _departments,
+                      value: _selectedDepartment,
+                      itemLabel: (item) => item['name'] as String,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedDepartment = value;
+                          departementController.text = value?['name'] ?? "";
+                        });
+                        if (value != null)
+                          _loadSubPrefectures(value['id'] as String);
+                      },
+                      validator: (value) => value == null ? "Requis" : null,
                     ),
-                    textField(
-                      sousprefectureController,
+                    const SizedBox(height: 10),
+                    SearchableDropdown<Map<String, dynamic>>(
                       label: "Sous-préfecture *",
-                      hint: "Ex : Korhogo",
-                      validator: requiredValidator,
-                      keyboardType: TextInputType.text,
+                      items: _subPrefectures,
+                      value: _selectedSubPrefecture,
+                      itemLabel: (item) => item['name'] as String,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedSubPrefecture = value;
+                          sousprefectureController.text = value?['name'] ?? "";
+                        });
+                        if (value != null) _loadSectors(value['id'] as String);
+                      },
+                      validator: (value) => value == null ? "Requis" : null,
                     ),
-                    textField(
-                      villageController,
+                    const SizedBox(height: 10),
+                    SearchableDropdown<Map<String, dynamic>>(
                       label: "Village *",
-                      hint: "Ex : Nawalakaha",
-                      validator: requiredValidator,
-                      keyboardType: TextInputType.text,
+                      items: _sectors,
+                      value: _selectedSector,
+                      itemLabel: (item) => item['name'] as String,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedSector = value;
+                          villageController.text = value?['name'] ?? "";
+                        });
+                      },
+                      validator: (value) => value == null ? "Requis" : null,
                     ),
                     textField(
                       destinationVilleController,
@@ -646,12 +810,42 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
                       hint: "",
                       validator: requiredValidator,
                     ),
-                    textField(
-                      nomMagasinController,
-                      label: "Nom magasin *",
-                      hint: "Ex: Magasin 105 A",
-                      validator: requiredValidator,
-                    ),
+                    _warehouses.isEmpty
+                        ? textField(
+                            nomMagasinController,
+                            label: "Nom magasin *",
+                            hint: "Ex: Magasin 105 A",
+                            validator: requiredValidator,
+                          )
+                        : Padding(
+                            padding: const EdgeInsets.only(bottom: 15),
+                            child: DropdownButtonFormField<String>(
+                              decoration: InputDecoration(
+                                labelText: "Nom magasin *",
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                filled: true,
+                                fillColor: Colors.white,
+                              ),
+                              items: _warehouses.map((w) {
+                                return DropdownMenuItem<String>(
+                                  value: w['name'] as String,
+                                  child: Text(
+                                    w['name'] as String,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  nomMagasinController.text = value ?? "";
+                                });
+                              },
+                              validator: (value) =>
+                                  value == null ? "Champ requis" : null,
+                            ),
+                          ),
                   ],
                 ),
                 sectionTitle(
@@ -694,7 +888,6 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
                       label: "Nom du transporteur *",
                       hint: "Ex: Soro Yaya",
                       validator: requiredValidator,
-                      keyboardType: TextInputType.text,
                     ),
                     textField(
                       contactTransporteurController,
@@ -708,42 +901,36 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
                       label: "Marque camion *",
                       hint: "Ex: Kia",
                       validator: requiredValidator,
-                      keyboardType: TextInputType.text,
                     ),
                     textField(
                       immatriculationController,
                       label: "Immatriculation *",
                       hint: "",
                       validator: requiredValidator,
-                      keyboardType: TextInputType.text,
                     ),
                     textField(
                       remorqueController,
                       label: "Remorque *",
                       hint: "",
                       validator: requiredValidator,
-                      keyboardType: TextInputType.text,
                     ),
                     textField(
                       avantCamionController,
                       label: "Avant du camion *",
                       hint: "",
                       validator: requiredValidator,
-                      keyboardType: TextInputType.text,
                     ),
                     textField(
                       nomChauffeurController,
                       label: "Nom du chauffeur *",
                       hint: "",
                       validator: requiredValidator,
-                      keyboardType: TextInputType.text,
                     ),
                     textField(
                       permisConduireController,
                       label: "N° du permis de conduire *",
                       hint: "",
                       validator: requiredValidator,
-                      keyboardType: TextInputType.text,
                     ),
                   ],
                 ),
@@ -799,169 +986,100 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
                           ),
                         ),
                       )
-                    : Column(
+                    : Stack(
                         children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: Image.file(
-                              File(photoFiche!.path),
-                              fit: BoxFit.cover,
-                              height: 250,
-                              width: double.infinity,
-                            ),
+                          Image.file(
+                            File(photoFiche!.path),
+                            width: double.infinity,
+                            height: 250,
+                            fit: BoxFit.cover,
                           ),
-                          const SizedBox(height: 10),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: () =>
-                                      setState(() => photoFiche = null),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.red,
-                                  ),
-                                  icon: const Icon(
-                                    Icons.delete,
-                                    color: Colors.white,
-                                  ),
-                                  label: const Text(
-                                    "Supprimer",
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                ),
+                          Positioned(
+                            top: 10,
+                            right: 10,
+                            child: IconButton(
+                              icon: const Icon(
+                                Icons.close,
+                                color: Colors.white,
                               ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: prendrePhoto,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blue,
-                                  ),
-                                  icon: const Icon(
-                                    Icons.camera_alt,
-                                    color: Colors.white,
-                                  ),
-                                  label: const Text(
-                                    "Reprendre",
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                ),
-                              ),
-                            ],
+                              onPressed: () {
+                                setState(() {
+                                  photoFiche = null;
+                                });
+                              },
+                            ),
                           ),
                         ],
                       ),
+                const SizedBox(height: 15),
 
-                const SizedBox(height: 20),
-                Text(
-                  "Reçus (${_receipts.length})",
-                  style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 10),
-
-                ..._receipts
-                    .map(
-                      (receipt) => Card(
-                        margin: EdgeInsets.only(bottom: 10),
-                        child: ListTile(
-                          leading: Image.file(
-                            File(receipt.imagePath),
-                            width: 50,
-                            height: 50,
-                            fit: BoxFit.cover,
-                          ),
-                          title: Text(
-                            "N° ${receipt.receiptNumber}",
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          trailing: IconButton(
-                            icon: Icon(Icons.delete, color: Colors.red),
-                            onPressed: () {
-                              setState(() {
-                                _receipts.remove(receipt);
-                              });
-                            },
-                          ),
+                // Reçu List
+                sectionTitle("Reçus associés", color: Colors.purple),
+                if (_receipts.isEmpty)
+                  Text(
+                    "Aucun reçu ajouté",
+                    style: GoogleFonts.poppins(color: Colors.grey),
+                  )
+                else
+                  Column(
+                    children: _receipts.map((e) {
+                      return ListTile(
+                        leading: Icon(Icons.receipt),
+                        title: Text("Reçu ${e.receiptNumber}"),
+                        trailing: IconButton(
+                          icon: Icon(Icons.delete, color: Colors.red),
+                          onPressed: () {
+                            setState(() {
+                              _receipts.remove(e);
+                            });
+                          },
                         ),
-                      ),
-                    )
-                    .toList(),
+                      );
+                    }).toList(),
+                  ),
 
+                SizedBox(height: 10),
                 ElevatedButton.icon(
                   onPressed: _showAddReceiptDialog,
                   icon: Icon(Icons.add),
                   label: Text("Ajouter un reçu"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                    minimumSize: Size(double.infinity, 50),
-                  ),
                 ),
 
-                const SizedBox(height: 20),
-
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey.shade300),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: SwitchListTile(
-                    title: Text(
-                      "Forcer l'envoi hors-ligne (USSD)",
-                      style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-                    ),
-                    subtitle: Text(
-                      "Activez si la connexion internet est instable.",
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        color: Colors.grey,
-                      ),
-                    ),
-                    value: _forceUssd,
-                    onChanged: (bool value) {
-                      setState(() {
-                        _forceUssd = value;
-                      });
-                    },
-                    activeColor: primaryColor,
-                  ),
-                ),
-
-                const SizedBox(height: 30),
-
+                SizedBox(height: 30),
                 ElevatedButton(
                   onPressed: _isLoading ? null : enregistrer,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryColor,
-                    minimumSize: const Size(double.infinity, 60),
+                    backgroundColor: const Color(0xFF0E8446),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.save, color: Colors.white),
-                            const SizedBox(width: 10),
-                            Text(
-                              "Enregistrer le reçu",
-                              style: GoogleFonts.poppins(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 18,
-                              ),
+                  child: Center(
+                    child: _isLoading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : Text(
+                            "Soumettre la fiche",
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
                             ),
-                          ],
-                        ),
+                          ),
+                  ),
                 ),
-                const SizedBox(height: 30),
+
+                SizedBox(height: 20),
+                CheckboxListTile(
+                  title: Text("Forcer envoi USSD (Simulation)"),
+                  value: _forceUssd,
+                  onChanged: (val) {
+                    setState(() {
+                      _forceUssd = val ?? false;
+                    });
+                  },
+                ),
+                SizedBox(height: 20),
               ],
             ),
           ),
@@ -970,138 +1088,104 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
     );
   }
 
-  Widget inputSection({required String title, required Widget child}) =>
-      Container(
-        padding: const EdgeInsets.all(12),
-        margin: const EdgeInsets.only(bottom: 10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFFD9D9D9)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 8),
-            child,
-          ],
-        ),
-      );
-
-  Widget sectionTitle(String title, {required Color color}) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 12),
-    child: Text(
-      title,
-      style: GoogleFonts.poppins(
-        color: color,
-        fontWeight: FontWeight.w600,
-        fontSize: 14,
-      ),
-    ),
-  );
-
-  Widget sectionCard({required Color color, required List<Widget> children}) =>
-      Container(
-        padding: const EdgeInsets.all(12),
-        margin: const EdgeInsets.only(bottom: 10),
-        decoration: BoxDecoration(
+  Widget sectionTitle(String title, {required Color color}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0, top: 10.0),
+      child: Text(
+        title,
+        style: GoogleFonts.poppins(
+          fontWeight: FontWeight.bold,
           color: color,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFFD9D9D9)),
+          fontSize: 16,
         ),
-        child: Column(children: children),
-      );
+      ),
+    );
+  }
 
-  Widget infoBanner() => Container(
-    padding: const EdgeInsets.all(12),
-    decoration: BoxDecoration(
-      color: const Color(0xFFEFF6FF),
-      borderRadius: BorderRadius.circular(8),
-    ),
-    child: Row(
-      children: [
-        const Icon(Icons.info_outline, color: Colors.blue),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            "Le reçu sera automatiquement synchronisé dans le système SND.",
-            style: GoogleFonts.poppins(
-              fontSize: 13,
-              color: const Color(0XFF5D8BCC),
-            ),
+  Widget sectionCard({required List<Widget> children, Color? color}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: color ?? Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: Offset(0, 2),
           ),
-        ),
+        ],
+      ),
+      padding: EdgeInsets.all(12),
+      margin: EdgeInsets.only(bottom: 10),
+      child: Column(children: children),
+    );
+  }
+
+  Widget inputSection({required String title, required Widget child}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
+        const SizedBox(height: 8),
+        child,
+        const SizedBox(height: 15),
       ],
-    ),
-  );
+    );
+  }
 
   Widget textField(
     TextEditingController controller, {
-    String label = "",
     String? hint,
-    Function(String)? onChanged,
-    String? Function(String?)? validator,
-    TextInputType? keyboardType,
+    String? label,
+    FormFieldValidator<String>? validator,
     Widget? suffixIcon,
-  }) => Padding(
-    padding: const EdgeInsets.only(bottom: 10),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (label.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 6),
-            child: Text(
-              label,
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
-              ),
-            ),
-          ),
-        TextFormField(
-          controller: controller,
-          onChanged: onChanged,
-          validator: validator,
-          keyboardType: keyboardType,
-          style: GoogleFonts.poppins(fontSize: 14),
-
-          decoration: InputDecoration(
-            hintText: hint,
-            filled: true,
-            fillColor: Colors.white,
-            suffixIcon: suffixIcon,
-            hintStyle: GoogleFonts.poppins(fontSize: 13, color: Colors.grey),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Color(0xFFD9D9D9)),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Color(0xFFD9D9D9)),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 12,
-            ),
-          ),
+    TextInputType? keyboardType,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 15),
+      child: TextFormField(
+        controller: controller,
+        validator: validator,
+        keyboardType: keyboardType,
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: hint,
+          suffixIcon: suffixIcon,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          filled: true,
+          fillColor: Colors.white,
         ),
-      ],
-    ),
-  );
+      ),
+    );
+  }
 
   String? requiredValidator(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return "Champ obligatoire";
+    if (value == null || value.isEmpty) {
+      return 'Champ requis';
     }
     return null;
+  }
+
+  Widget infoBanner() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.blue[50],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.blue[200]!),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.info_outline, color: Colors.blue),
+          SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              "Remplissez soigneusement les champs. Les données seront synchronisées automatiquement.",
+              style: GoogleFonts.poppins(fontSize: 12),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

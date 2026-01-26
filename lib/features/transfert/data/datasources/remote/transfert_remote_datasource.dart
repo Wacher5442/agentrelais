@@ -8,13 +8,16 @@ class TransfertRemoteDataSource {
   final DioClient dioClient;
   TransfertRemoteDataSource(this.dioClient);
 
-  Future<String> getUploadUrl(String submissionId) async {
+  Future<String> getUploadUrl(String numeroFiche) async {
     try {
-      log("Submission ID fetching url $submissionId");
+      log("Submission ID fetching url $numeroFiche");
 
       final resp = await dioClient.post(
         '/object-gateway/api/presigned/get-upload-url',
-        data: {'file_type': '$submissionId', 'agent_id': '2024-2025'},
+        data: {
+          'file_type': 'Fiche de transfert $numeroFiche',
+          'agent_id': '2024-2025',
+        },
         options: Options(headers: {'Content-Type': 'application/json'}),
       );
 
