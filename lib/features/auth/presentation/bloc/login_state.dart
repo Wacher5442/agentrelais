@@ -14,11 +14,18 @@ class LoginLoading extends LoginState {}
 class LoginSuccess extends LoginState {
   final User user;
   final String activeRegion;
+  final String campagne;
+  final List<CommodityEntity> commodities;
 
-  const LoginSuccess({required this.user, required this.activeRegion});
+  const LoginSuccess({
+    required this.user,
+    required this.activeRegion,
+    required this.campagne,
+    this.commodities = const [],
+  });
 
   @override
-  List<Object> get props => [user, activeRegion];
+  List<Object> get props => [user, activeRegion, campagne, commodities];
 }
 
 class LoginFailure extends LoginState {

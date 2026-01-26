@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:agent_relais/features/auth/domain/entities/user_entity.dart';
@@ -61,14 +63,27 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
 
   Future<void> _syncTerritories(Emitter<SyncState> emit) async {
     final activeRegionId = await authLocalDataSource.getActiveRegion();
+    // 2. On récupère l'objet User caché pour avoir le nom de la région (placeOfWork)
+    final user = await authLocalDataSource.getLastUser();
     if (activeRegionId == null || activeRegionId.isEmpty) {
       throw Exception("Région active non définie.");
     }
 
     emit(
-      SyncInProgress(message: "Récupération de votre région...", progress: 0.2),
+      const SyncInProgress(
+        message: "Enregistrement de la région...",
+        progress: 0.15,
+      ),
     );
 
+    final regionMap = {
+      'id': activeRegionId,
+      'code': activeRegionId,
+      'name': user?.placeOfWork ?? "Région Active",
+    };
+
+    // On utilise ton localDataSource pour insérer dans SQLite
+    await localDataSource.saveBatch('regions', [regionMap]);
     // Récupérer les départements
     final departments = await remoteDataSource.getDepartments(activeRegionId);
     await localDataSource.saveBatch('departments', departments);
@@ -78,6 +93,8 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
     double step =
         0.7 / departments.length; // On alloue 70% de la barre aux enfants
     double currentProgress = 0.2;
+
+    log("--------------- departments $departments-----------------");
 
     for (var dep in departments) {
       final depId = dep['id'].toString();
@@ -91,6 +108,7 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
       // Sous-Préfectures
       final subPrefs = await remoteDataSource.getSubPrefectures(depId);
       await localDataSource.saveBatch('sub_prefectures', subPrefs);
+      log("--------------- subPrefs $subPrefs-----------------");
 
       for (var sub in subPrefs) {
         final subId = sub['id'].toString();
@@ -99,6 +117,8 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
         final sectors = await remoteDataSource.getSectors(subId);
         await localDataSource.saveBatch('sectors', sectors);
 
+        log("--------------- sectors $sectors-----------------");
+
         for (var sector in sectors) {
           final sectorId = sector['id'].toString();
 
@@ -106,19 +126,23 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
           final zds = await remoteDataSource.getZds(sectorId);
           await localDataSource.saveBatch('zds', zds);
 
-          for (var zd in zds) {
-            final zdId = zd['id'].toString();
+          log("--------------- zds $zds-----------------");
 
-            // Localités
-            final localites = await remoteDataSource.getLocalites(zdId);
-            await localDataSource.saveBatch('localites', localites);
+          // for (var zd in zds) {
+          //   final zdId = zd['id'].toString();
 
-            for (var loc in localites) {
-              final locId = loc['id'].toString();
-              final quarters = await remoteDataSource.getQuarters(locId);
-              await localDataSource.saveBatch('quarters', quarters);
-            }
-          }
+          //   // Localités
+          //   final localites = await remoteDataSource.getLocalites(zdId);
+          //   await localDataSource.saveBatch('localites', localites);
+
+          //   log("--------------- localites $localites-----------------");
+
+          //   for (var loc in localites) {
+          //     final locId = loc['id'].toString();
+          //     final quarters = await remoteDataSource.getQuarters(locId);
+          //     await localDataSource.saveBatch('quarters', quarters);
+          //   }
+          // }
         }
       }
       currentProgress += step;

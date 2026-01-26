@@ -4,10 +4,15 @@ import 'package:dio/dio.dart';
 
 class DioClient {
   final Dio dio;
+  final Future<String?> Function()? accessTokenGetter;
 
-  DioClient._internal(this.dio);
+  DioClient._internal(this.dio, {this.accessTokenGetter});
 
-  factory DioClient({required String baseUrl, Duration? timeout}) {
+  factory DioClient({
+    required String baseUrl,
+    Duration? timeout,
+    Future<String?> Function()? accessTokenGetter,
+  }) {
     log("baseUrl $baseUrl");
     final d = Dio(
       BaseOptions(
@@ -22,7 +27,13 @@ class DioClient {
 
     d.interceptors.add(
       InterceptorsWrapper(
-        onRequest: (options, handler) {
+        onRequest: (options, handler) async {
+          if (accessTokenGetter != null) {
+            final token = await accessTokenGetter();
+            if (token != null && token.isNotEmpty) {
+              options.headers['Authorization'] = 'Bearer $token';
+            }
+          }
           handler.next(options);
         },
         onResponse: (response, handler) {
@@ -54,7 +65,7 @@ class DioClient {
       ),
     );
 
-    return DioClient._internal(d);
+    return DioClient._internal(d, accessTokenGetter: accessTokenGetter);
   }
 
   Future<Response> post(

@@ -1,5 +1,7 @@
+import 'dart:developer';
 import 'dart:io';
 
+import 'package:agent_relais/core/constants/ussd_constants.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -121,6 +123,8 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
       );
       setState(() => _regions = items);
 
+      log("--------------- regions items $items-----------------");
+
       // Attempt to auto-select from LoginBloc Active Region
       final loginState = context.read<LoginBloc>().state;
       if (loginState is LoginSuccess && loginState.activeRegion.isNotEmpty) {
@@ -152,6 +156,7 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
         'region_id',
         regionId,
       );
+      log("--------------- departments items $items-----------------");
       setState(() {
         _departments = items;
         _departments.sort(
@@ -430,17 +435,30 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
     }
     if (!_formKey.currentState!.validate()) return;
 
+    // Extract username and campagne from LoginBloc
+    final loginState = context.read<LoginBloc>().state;
+    String username = 'agent_unknown';
+    String campagne = '2025-2026';
+
+    if (loginState is LoginSuccess) {
+      username = loginState.user.username;
+      campagne = loginState.campagne;
+    }
+
+    // Generate bundle_id from receipt numbers
+    final bundleId = _receipts.map((r) => r.receiptNumber).join('');
+
     final entity = TransfertEntity(
-      submissionId: '',
-      formId: 1,
+      numeroFiche: numeroFicheController.text,
+      formId: TRANSFERT_FORM_ID,
       status: 'draft',
       submissionMethod: _forceUssd ? 'ussd' : 'http',
-      agentId: 'AGENT_007',
+      username: username,
+      bundleId: bundleId,
+      campagne: campagne,
       createdAt: DateTime.now().millisecondsSinceEpoch,
       updatedAt: DateTime.now().millisecondsSinceEpoch,
 
-      // Tous les champs mappés aux contrôleurs
-      numeroFiche: numeroFicheController.text,
       typeTransfert: _typeTransfert,
       sticker: stickerController.text,
       date: dateChargementController.text,
@@ -466,7 +484,7 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
       avantCamion: avantCamionController.text,
       nomChauffeur: nomChauffeurController.text,
       permisConduire: permisConduireController.text,
-      photoFiche: photoFiche?.path,
+      image: photoFiche?.path,
       receipts: _receipts,
     );
 
@@ -697,7 +715,7 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
 
                 sectionTitle("A. Origine du produit", color: greenSecondary),
                 sectionCard(
-                  color: Colors.white,
+                  color: Colors.grey.shade200,
                   children: [
                     textField(
                       dateChargementController,
@@ -714,14 +732,14 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
                       onChanged: (value) {
                         setState(() {
                           _selectedRegion = value;
-                          regionController.text = value?['name'] ?? "";
+                          regionController.text = value?['id'] ?? "";
                         });
                         if (value != null)
                           _loadDepartments(value['id'] as String);
                       },
                       validator: (value) => value == null ? "Requis" : null,
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 15),
                     SearchableDropdown<Map<String, dynamic>>(
                       label: "Département *",
                       items: _departments,
@@ -737,7 +755,7 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
                       },
                       validator: (value) => value == null ? "Requis" : null,
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 15),
                     SearchableDropdown<Map<String, dynamic>>(
                       label: "Sous-préfecture *",
                       items: _subPrefectures,
@@ -746,13 +764,13 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
                       onChanged: (value) {
                         setState(() {
                           _selectedSubPrefecture = value;
-                          sousprefectureController.text = value?['name'] ?? "";
+                          sousprefectureController.text = value?['id'] ?? "";
                         });
                         if (value != null) _loadSectors(value['id'] as String);
                       },
                       validator: (value) => value == null ? "Requis" : null,
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 15),
                     SearchableDropdown<Map<String, dynamic>>(
                       label: "Village *",
                       items: _sectors,
@@ -761,11 +779,12 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
                       onChanged: (value) {
                         setState(() {
                           _selectedSector = value;
-                          villageController.text = value?['name'] ?? "";
+                          villageController.text = value?['id'] ?? "";
                         });
                       },
                       validator: (value) => value == null ? "Requis" : null,
                     ),
+                    const SizedBox(height: 15),
                     textField(
                       destinationVilleController,
                       label: "Destination Prevue/Ville *",
@@ -853,7 +872,7 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
                   color: Colors.blueAccent,
                 ),
                 sectionCard(
-                  color: Colors.white,
+                  color: const Color.fromARGB(255, 197, 216, 245),
                   children: [
                     textField(
                       denominationController,

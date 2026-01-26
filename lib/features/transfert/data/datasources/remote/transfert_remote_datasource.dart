@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import '../../../../../core/network/dio_client.dart';
 
@@ -8,17 +9,16 @@ class TransfertRemoteDataSource {
   final DioClient dioClient;
   TransfertRemoteDataSource(this.dioClient);
 
-  Future<String> getUploadUrl(String numeroFiche) async {
+  Future<String> getUploadUrl(String filetype, String username) async {
     try {
-      log("Submission ID fetching url $numeroFiche");
+      log("Submission ID fetching url $filetype");
+      final baseUrl =
+          dotenv.env['BASE_URL_OBJECT_GATEWAY'] ??
+          'https://maracko-backend.dev.go.incubtek.com/object-gateway/api/presigned/get-upload-url';
 
       final resp = await dioClient.post(
-        '/object-gateway/api/presigned/get-upload-url',
-        data: {
-          'file_type': 'Fiche de transfert $numeroFiche',
-          'agent_id': '2024-2025',
-        },
-        options: Options(headers: {'Content-Type': 'application/json'}),
+        baseUrl,
+        data: {'file_type': filetype, 'agent_id': username},
       );
 
       log("Upload URL: ${resp.data['url']}");

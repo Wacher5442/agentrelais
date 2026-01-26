@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../../../core/network/dio_client.dart';
@@ -39,25 +41,30 @@ class ReferenceRemoteDataSource {
   }
 
   Future<List<Map<String, dynamic>>> getWarehouses() async {
+    log("--------------- start getWarehouses -----------------");
     final baseUrl =
         dotenv.env['BASE_URL_WAREHOUSES'] ??
-        'https://coco-backend.com/warehouse/';
+        'https://maracko-backend.dev.go.incubtek.com/warehouses';
     try {
       final response = await dioClient.get(baseUrl);
-      // Based on USER REQUEST:
-      // { "items": [ ... ], "total": ... }
+      log("--------------- response getWarehouses $response-----------------");
+
       if (response.data is Map && response.data.containsKey('items')) {
         return List<Map<String, dynamic>>.from(response.data['items']);
       }
+      log("--------------- end getWarehouses-----------------");
+
       return [];
     } on DioException catch (e) {
+      log("--------------- DioException getWarehouses $e-----------------");
+
       throw ServerException.fromDioError(e);
     }
   }
 
   String get _baseUrl =>
       dotenv.env['BASE_URL_TERRITORIES'] ??
-      'https://coco-backend.com/territories/';
+      'https://maracko-backend.dev.go.incubtek.com/territories/';
 
   Future<List<Map<String, dynamic>>> _fetchItems(String url) async {
     try {
@@ -67,6 +74,7 @@ class ReferenceRemoteDataSource {
       }
       return [];
     } on DioException catch (e) {
+      log("--------------- DioException _fetchItems $e-----------------");
       throw ServerException.fromDioError(e);
     }
   }

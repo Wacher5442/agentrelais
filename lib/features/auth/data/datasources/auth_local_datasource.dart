@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../../../core/db/db_helper.dart';
 import '../models/user_model.dart';
+import '../models/commodity_model.dart';
+import '../models/campaign_model.dart';
 
 abstract class AuthLocalDataSource {
   Future<void> cacheToken(String accessToken, String refreshToken);
@@ -11,12 +14,26 @@ abstract class AuthLocalDataSource {
   Future<UserModel?> getLastUser();
   Future<void> saveActiveRegion(String region);
   Future<String?> getActiveRegion();
+
+  // Commodities
+  Future<void> saveCommodities(List<CommodityModel> commodities);
+  Future<List<CommodityModel>> getCommodities();
+
+  // Campaigns
+  Future<void> saveCampaigns(List<CampaignModel> campaigns);
+  Future<List<CampaignModel>> getCampaigns();
+  Future<CampaignModel?> getActiveCampaignForCommodity(String commodityCode);
+
+  // App Preferences
+  Future<void> saveSelectedCommodity(String commodityCode);
+  Future<String?> getSelectedCommodity();
 }
 
 class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   final FlutterSecureStorage secureStorage;
+  final DbHelper dbHelper;
 
-  AuthLocalDataSourceImpl(this.secureStorage);
+  AuthLocalDataSourceImpl(this.secureStorage, this.dbHelper);
 
   static const _accessTokenKey = 'ACCESS_TOKEN';
   static const _refreshTokenKey = 'REFRESH_TOKEN';
@@ -67,5 +84,79 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
       return UserModel.fromJson(json.decode(jsonString));
     }
     return null;
+  }
+
+  // Commodities
+  @override
+  Future<void> saveCommodities(List<CommodityModel> commodities) async {
+    final db = await dbHelper.database;
+    // Clear existing commodities
+    await db.delete('commodities');
+    // Insert new ones
+    for (var commodity in commodities) {
+      await db.insert('commodities', commodity.toMap());
+    }
+  }
+
+  @override
+  Future<List<CommodityModel>> getCommodities() async {
+    final rows = await dbHelper.query('commodities', orderBy: 'name ASC');
+    return rows.map((row) => CommodityModel.fromMap(row)).toList();
+  }
+
+  // Campaigns
+  @override
+  Future<void> saveCampaigns(List<CampaignModel> campaigns) async {
+    final db = await dbHelper.database;
+    // Clear existing campaigns
+    await db.delete('campaigns');
+    // Insert new ones
+    for (var campaign in campaigns) {
+      await db.insert('campaigns', campaign.toMap());
+    }
+  }
+
+  @override
+  Future<List<CampaignModel>> getCampaigns() async {
+    final rows = await dbHelper.query('campaigns', orderBy: 'name ASC');
+    return rows.map((row) => CampaignModel.fromMap(row)).toList();
+  }
+
+  @override
+  Future<CampaignModel?> getActiveCampaignForCommodity(
+    String commodityCode,
+  ) async {
+    final rows = await dbHelper.query(
+      'campaigns',
+      where: 'commodity_code = ? AND is_active = ? AND status = ?',
+      whereArgs: [commodityCode, 1, 'OPEN'],
+    );
+
+    if (rows.isEmpty) return null;
+    return CampaignModel.fromMap(rows.first);
+  }
+
+  // App Preferences
+  @override
+  Future<void> saveSelectedCommodity(String commodityCode) async {
+    await dbHelper.database;
+    await dbHelper.update(
+      'app_preferences',
+      {'value': commodityCode},
+      'key = ?',
+      ['selected_commodity'],
+    );
+  }
+
+  @override
+  Future<String?> getSelectedCommodity() async {
+    final rows = await dbHelper.query(
+      'app_preferences',
+      where: 'key = ?',
+      whereArgs: ['selected_commodity'],
+    );
+
+    if (rows.isEmpty) return null;
+    return rows.first['value'] as String?;
   }
 }

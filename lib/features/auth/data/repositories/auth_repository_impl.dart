@@ -3,6 +3,8 @@ import '../../../../core/errors/failure.dart';
 import '../../../../core/network/exceptions.dart';
 import '../../../../core/network/network_info.dart';
 import '../../domain/entities/user_entity.dart';
+import '../../domain/entities/commodity_entity.dart';
+import '../../domain/entities/campaign_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_local_datasource.dart';
 import '../datasources/auth_remote_datasource.dart';
@@ -25,26 +27,41 @@ class AuthRepositoryImpl implements AuthRepository {
       try {
         final response = await remoteDataSource.login(username, password);
 
-        // Parse Token
+        // 1. On récupère les tokens et le user de base (avec permissions)
         final tokenData = response['token'];
-        final accessToken = tokenData['access_token'];
-        final refreshToken = tokenData['refresh_token'];
+        await localDataSource.cacheToken(
+          tokenData['access_token'],
+          tokenData['refresh_token'],
+        );
 
-        // Parse User
-        final userModel = UserModel.fromJson(response['userinfo']);
+        UserModel userWithRoles = UserModel.fromJson(response['userinfo']);
 
-        // Cache
-        await localDataSource.cacheToken(accessToken, refreshToken);
-        await localDataSource.cacheUser(userModel);
+        // 2. Appel du profil pour récupérer les infos manquantes (metadata_)
+        try {
+          final profileData = await remoteDataSource.getProfile();
 
-        return Right(userModel);
+          // 3. FUSION : On garde les rôles de 'userWithRoles' mais on prend
+          // le matricule et le lieu de travail de 'profileData'
+          final finalUser = userWithRoles.copyWith(
+            agentCode: profileData.agentCode,
+            placeOfWork: profileData.placeOfWork,
+            firstName: profileData.firstName, // si présent dans profil
+            lastName: profileData.lastName, // si présent dans profil
+          );
+
+          await localDataSource.cacheUser(finalUser);
+          return Right(finalUser);
+        } catch (e) {
+          // Si le profil échoue, on renvoie quand même l'utilisateur du login
+          // pour ne pas bloquer l'accès, même s'il manque des infos.
+          await localDataSource.cacheUser(userWithRoles);
+          return Right(userWithRoles);
+        }
       } on ServerException catch (e) {
         return Left(ServerFailure(e.message));
-      } catch (e) {
-        return Left(ServerFailure(e.toString()));
       }
     } else {
-      return Left(ServerFailure("No internet connection"));
+      return Left(ServerFailure("Pas de connexion internet"));
     }
   }
 
@@ -113,5 +130,95 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<String?> getActiveRegion() async {
     return await localDataSource.getActiveRegion();
+  }
+
+  // --- Dynamic Commodity & Campaign Management ---
+
+  @override
+  Future<Either<Failure, List<CommodityEntity>>>
+  fetchAndStoreCommodities() async {
+    if (await networkInfo.isConnected) {
+      try {
+        final commodities = await remoteDataSource.getCommodities();
+        await localDataSource.saveCommodities(commodities);
+        return Right(commodities);
+      } on ServerException catch (e) {
+        return Left(ServerFailure(e.message));
+      } catch (e) {
+        return Left(ServerFailure(e.toString()));
+      }
+    } else {
+      // Return cached if offline
+      try {
+        final local = await localDataSource.getCommodities();
+        return Right(local);
+      } catch (e) {
+        return Left(CacheFailure("Failed to load cached commodities"));
+      }
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<CampaignEntity>>>
+  fetchAndStoreOpenCampaigns() async {
+    if (await networkInfo.isConnected) {
+      try {
+        final campaigns = await remoteDataSource.getOpenCampaigns();
+        await localDataSource.saveCampaigns(campaigns);
+        return Right(campaigns);
+      } on ServerException catch (e) {
+        return Left(ServerFailure(e.message));
+      } catch (e) {
+        return Left(ServerFailure(e.toString()));
+      }
+    } else {
+      // Return cached if offline
+      try {
+        final local = await localDataSource.getCampaigns();
+        return Right(local);
+      } catch (e) {
+        return Left(CacheFailure("Failed to load cached campaigns"));
+      }
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> getActiveCommodityCode() async {
+    try {
+      // Logic: Preference > Default "ANACARDE"
+      final selected = await localDataSource.getSelectedCommodity();
+      return Right(selected ?? "ANACARDE");
+    } catch (e) {
+      return const Right("ANACARDE");
+    }
+  }
+
+  @override
+  Future<Either<Failure, CampaignEntity?>> getActiveCampaign() async {
+    try {
+      final commodityCodeResult = await getActiveCommodityCode();
+      return await commodityCodeResult.fold((failure) async => Left(failure), (
+        code,
+      ) async {
+        final campaign = await localDataSource.getActiveCampaignForCommodity(
+          code,
+        );
+        return Right(campaign);
+      });
+    } catch (e) {
+      return Left(CacheFailure("Failed to get active campaign: $e"));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> setSelectedCommodity(
+    String commodityCode,
+  ) async {
+    try {
+      await localDataSource.saveSelectedCommodity(commodityCode);
+      return const Right(null);
+    } catch (e) {
+      return Left(CacheFailure("Failed to save selected commodity"));
+    }
   }
 }

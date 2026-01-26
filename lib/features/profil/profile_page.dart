@@ -84,12 +84,60 @@ class _ProfilePageState extends State<ProfilePage> {
                   StatsCard(
                     icon: Icons.info_outline,
                     title: "Information application",
-                    items: const {
+                    items: {
                       "Version :": "1.0.5",
                       "Dernière synchro :": "16/05/25 10:30",
                       "Statut :": "Connecté au SND",
+                      "Campagne active :": state is LoginSuccess
+                          ? state.campagne
+                          : "N/A",
                     },
                   ),
+                  const SizedBox(height: 20),
+
+                  if (state is LoginSuccess &&
+                      state.commodities.isNotEmpty) ...[
+                    Text(
+                      "Commodité",
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    DropdownButtonFormField<String>(
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: Colors.grey[100],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      value:
+                          state.commodities.any(
+                            (c) => state.campagne.contains(c.code),
+                          )
+                          ? state.commodities
+                                .firstWhere(
+                                  (c) => state.campagne.contains(c.code),
+                                )
+                                .code
+                          : null, // Basic matching logic
+                      items: state.commodities.map((c) {
+                        return DropdownMenuItem(
+                          value: c.code,
+                          child: Text(c.name, style: GoogleFonts.poppins()),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        if (val != null) {
+                          context.read<LoginBloc>().add(CommodityChanged(val));
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                  ],
                   const SizedBox(height: 40),
                   CustomButton(
                     buttonColor: Colors.red,

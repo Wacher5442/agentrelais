@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:developer';
 
 import 'package:fpdart/fpdart.dart';
-import 'package:uuid/uuid.dart';
 
 import '../../../../core/constants/ussd_constants.dart';
 import '../../../../core/errors/failure.dart';
@@ -68,7 +67,6 @@ class TransfertRepositoryImpl implements TransfertRepository {
     required bool forceUssd,
   }) async {
     try {
-      final submissionId = _generateShortSubmissionId();
       final now = DateTime.now().millisecondsSinceEpoch;
       final fieldsMap = transfert.toFieldsJson();
       final fieldsJson = jsonEncode(fieldsMap);
@@ -79,8 +77,8 @@ class TransfertRepositoryImpl implements TransfertRepository {
 
       final tlvFields = TlvFieldMappings.mapFromDto(
         fieldsMap,
-        transfert.agentId,
-        "2025-2026",
+        transfert.username,
+        transfert.campagne,
         transfert.receipts.length.toString(),
         keysToKeep: isActuallyUssd ? _ussdFieldsWhitelist : null,
       );
@@ -97,11 +95,13 @@ class TransfertRepositoryImpl implements TransfertRepository {
 
       // 2. Sauvegarde locale systématique
       final model = TransfertModel(
-        submissionId: submissionId,
+        numeroFiche: transfert.numeroFiche,
         formId: transfert.formId,
         status: 'draft',
         submissionMethod: isActuallyUssd ? 'ussd' : 'http',
-        agentId: transfert.agentId,
+        username: transfert.username,
+        bundleId: transfert.bundleId,
+        campagne: transfert.campagne,
         createdAt: now,
         updatedAt: now,
         payload: fullMessage,
@@ -109,10 +109,10 @@ class TransfertRepositoryImpl implements TransfertRepository {
         fieldsJson: fieldsJson,
         totalParts: 1,
         partsSent: 0,
-        numeroFiche: transfert.numeroFiche,
         typeTransfert: transfert.typeTransfert,
         sticker: transfert.sticker,
         receipts: transfert.receipts,
+        image: transfert.image,
       );
 
       await localDataSource.insertTransfert(model);
@@ -120,10 +120,24 @@ class TransfertRepositoryImpl implements TransfertRepository {
       // 3. Tentative HTTP (si non forcé USSD et internet dispo)
       if (!forceUssd && await networkInfo.isConnected) {
         try {
-          final url = await remoteDataSource.getUploadUrl(submissionId);
+          // NEW: Get presigned URL for transfer data
+          final url = await remoteDataSource.getUploadUrl(
+            'Fiche de transfert ${transfert.numeroFiche}',
+            transfert.username,
+          );
 
-          // Convert receipts to Base64
-          final receiptsList = <Map<String, dynamic>>[];
+          // NEW: Submit transfer data separately
+          final transferPayload = {
+            "form_id": transfert.formId,
+            "fields": fieldsMap,
+          };
+
+          await remoteDataSource.uploadTransfert(
+            url: url,
+            payload: transferPayload,
+          );
+
+          // NEW: Submit each receipt separately
           for (var receipt in transfert.receipts) {
             String base64Image = "";
 
@@ -164,23 +178,37 @@ class TransfertRepositoryImpl implements TransfertRepository {
               }
             }
 
-            receiptsList.add({
-              "receipt_number": receipt.receiptNumber,
-              "image": base64Image,
-            });
+            // Get separate presigned URL for each receipt
+            final receiptUrl = await remoteDataSource.getUploadUrl(
+              '${transfert.numeroFiche}_receipt_${receipt.receiptNumber}',
+              transfert.username,
+            );
+
+            final receiptPayload = {
+              "form_id": transfert.formId,
+              "fields": {
+                "bundle_id": transfert.bundleId,
+                "numeroRecu": receipt.receiptNumber,
+                "image": base64Image,
+                "campagne": transfert.campagne,
+              },
+            };
+
+            await remoteDataSource.uploadTransfert(
+              url: receiptUrl,
+              payload: receiptPayload,
+            );
           }
 
-          final payload = {
-            "transfer_id": submissionId,
-            "fields": fieldsMap,
-            "receipts": receiptsList,
-          };
-
-          await remoteDataSource.uploadTransfert(url: url, payload: payload);
-
-          await localDataSource.updateStatus(submissionId, 'synchronisé');
+          await localDataSource.updateStatus(
+            transfert.numeroFiche,
+            'synchronisé',
+          );
           return Right(
-            SubmissionResult(submissionId: submissionId, viaHttp: true),
+            SubmissionResult(
+              submissionId: transfert.numeroFiche,
+              viaHttp: true,
+            ),
           );
         } catch (e) {
           log("Échec HTTP: $e. Basculement USSD.");
@@ -194,13 +222,17 @@ class TransfertRepositoryImpl implements TransfertRepository {
       if (encodedPreview.length <= _ussdLimit) {
         final success = await ussdTransport.sendPart(encodedPreview);
         final status = success ? 'envoyé_ussd' : 'echec';
-        await localDataSource.updateStatus(submissionId, status);
-        await localDataSource.updatePartsInfo(submissionId, 1, success ? 1 : 0);
+        await localDataSource.updateStatus(transfert.numeroFiche, status);
+        await localDataSource.updatePartsInfo(
+          transfert.numeroFiche,
+          1,
+          success ? 1 : 0,
+        );
 
         if (!success) return Left(ServerFailure("Échec envoi USSD"));
         return Right(
           SubmissionResult(
-            submissionId: submissionId,
+            submissionId: transfert.numeroFiche,
             viaHttp: false,
             totalUssdParts: 1,
           ),
@@ -228,21 +260,24 @@ class TransfertRepositoryImpl implements TransfertRepository {
           final ok = await ussdTransport.sendPart(partEncoded);
 
           if (!ok) {
-            await localDataSource.updateStatus(submissionId, 'echec');
+            await localDataSource.updateStatus(transfert.numeroFiche, 'echec');
             return Left(ServerFailure("Échec partie ${i + 1}"));
           }
           sentCount++;
           await localDataSource.updatePartsInfo(
-            submissionId,
+            transfert.numeroFiche,
             parts.length,
             sentCount,
           );
         }
 
-        await localDataSource.updateStatus(submissionId, 'envoyé_ussd');
+        await localDataSource.updateStatus(
+          transfert.numeroFiche,
+          'envoyé_ussd',
+        );
         return Right(
           SubmissionResult(
-            submissionId: submissionId,
+            submissionId: transfert.numeroFiche,
             viaHttp: false,
             totalUssdParts: parts.length,
           ),
@@ -259,8 +294,11 @@ class TransfertRepositoryImpl implements TransfertRepository {
     int count = 0;
     for (var t in pending) {
       try {
-        log("Submission ID fetching url ${t.submissionId}");
-        final url = await remoteDataSource.getUploadUrl(t.submissionId);
+        log("Numero Fiche fetching url ${t.numeroFiche}");
+        final url = await remoteDataSource.getUploadUrl(
+          'Fiche de transfert ${t.numeroFiche}',
+          t.username,
+        );
         final fields = jsonDecode(t.fieldsJson ?? '{}') as Map<String, dynamic>;
 
         // Calcul taille totale
@@ -276,13 +314,21 @@ class TransfertRepositoryImpl implements TransfertRepository {
 
         final totalMB = totalBytes / 1024 / 1024;
         log(
-          'SYNC ${t.submissionId} | '
+          'SYNC ${t.numeroFiche} | '
           '${t.receipts.length} receipts | '
           '${totalMB.toStringAsFixed(2)} MB',
           name: 'SYNC_HTTP',
         );
 
-        final receiptsList = <Map<String, dynamic>>[];
+        // Submit transfer data
+        final transferPayload = {"form_id": t.formId, "fields": fields};
+
+        await remoteDataSource.uploadTransfert(
+          url: url,
+          payload: transferPayload,
+        );
+
+        // Submit each receipt separately
         for (var receipt in t.receipts) {
           String base64Image = "";
           if (receipt.imagePath.isNotEmpty) {
@@ -292,30 +338,34 @@ class TransfertRepositoryImpl implements TransfertRepository {
               base64Image = base64Encode(bytes);
             }
           }
-          receiptsList.add({
-            "receipt_number": receipt.receiptNumber,
-            "image": base64Image,
-          });
+
+          final receiptUrl = await remoteDataSource.getUploadUrl(
+            '${t.numeroFiche}_receipt_${receipt.receiptNumber}',
+            t.username,
+          );
+
+          final receiptPayload = {
+            "form_id": t.formId,
+            "fields": {
+              "bundle_id": t.bundleId,
+              "numeroRecu": receipt.receiptNumber,
+              "image": base64Image,
+              "campagne": t.campagne,
+            },
+          };
+
+          await remoteDataSource.uploadTransfert(
+            url: receiptUrl,
+            payload: receiptPayload,
+          );
         }
 
-        final payload = {
-          "transfer_id": t.submissionId,
-          "fields": fields,
-          "receipts": receiptsList,
-        };
-
-        log("Uploading transfert");
-        await remoteDataSource.uploadTransfert(url: url, payload: payload);
-        await localDataSource.updateStatus(t.submissionId, 'synchronisé');
+        await localDataSource.updateStatus(t.numeroFiche, 'synchronisé');
         count++;
       } catch (e) {
-        log("Sync failed for ${t.submissionId}: $e");
+        log("Sync failed for ${t.numeroFiche}: $e");
       }
     }
     return count;
-  }
-
-  String _generateShortSubmissionId() {
-    return const Uuid().v4().substring(0, 8).toUpperCase();
   }
 }

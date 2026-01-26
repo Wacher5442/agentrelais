@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:agent_relais/core/constants/ussd_constants.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:workmanager/workmanager.dart';
 
@@ -25,7 +26,9 @@ void callbackDispatcher() {
         // Re-initialize dependencies for background isolate
         final dbHelper = DbHelper.instance;
         final dioClient = DioClient(
-          baseUrl: BASE_URL,
+          baseUrl:
+              dotenv.env['BASE_URL_AUTH'] ??
+              'https://maracko-backend.dev.go.incubtek.com/auth/',
         ); // Use env var in real app
         final networkInfo = NetworkInfoImpl(InternetConnection());
         final ussdTransport =

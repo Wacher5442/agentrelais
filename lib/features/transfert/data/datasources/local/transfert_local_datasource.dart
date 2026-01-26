@@ -6,9 +6,9 @@ import '../../models/transfert_model.dart';
 
 abstract class TransfertLocalDataSource {
   Future<void> insertTransfert(TransfertModel transfert);
-  Future<void> updateStatus(String submissionId, String status);
+  Future<void> updateStatus(String numeroFiche, String status);
   Future<void> updatePartsInfo(
-    String submissionId,
+    String numeroFiche,
     int totalParts,
     int partsSent,
   );
@@ -35,18 +35,18 @@ class TransfertLocalDataSourceImpl implements TransfertLocalDataSource {
   }
 
   @override
-  Future<void> updateStatus(String submissionId, String status) async {
+  Future<void> updateStatus(String numeroFiche, String status) async {
     await dbHelper.update(
       'transferts',
       {'status': status, 'updatedAt': DateTime.now().millisecondsSinceEpoch},
-      'submissionId = ?',
-      [submissionId],
+      'numeroFiche = ?',
+      [numeroFiche],
     );
   }
 
   @override
   Future<void> updatePartsInfo(
-    String submissionId,
+    String numeroFiche,
     int totalParts,
     int partsSent,
   ) async {
@@ -57,8 +57,8 @@ class TransfertLocalDataSourceImpl implements TransfertLocalDataSource {
         'partsSent': partsSent,
         'updatedAt': DateTime.now().millisecondsSinceEpoch,
       },
-      'submissionId = ?',
-      [submissionId],
+      'numeroFiche = ?',
+      [numeroFiche],
     );
   }
 

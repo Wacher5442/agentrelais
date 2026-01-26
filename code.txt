@@ -215,14 +215,15 @@ Les messages d'erreur : autre codes:
 // Toutes les dates en date par http mais par ussd respecter cette nomenclature YYYYMMDD
 // receiptCount nombre de reçus à ajouter dans les metadata.
 
-Dans mon code, en tant que developpeur senior, analyse bien et intègre les modifications pour l'ajout ou soumission d'une fiche de transfert.
+Dans ce projet, mon code, en tant que developpeur senior, analyse bien et intègre les modifications pour l'ajout ou soumission d'une fiche de transfert.
 1. Enlever submissionId et utiliser numeroFiche comme identifiant unique de la fiche de transfert.
 2. Ajouter un bundle id (base de données local, formulaire...) unique de la fiche de transfert. Ce bundle id va être la concatenation des numéro de réçu (receiptNumber) qu'on ajoute dans une fiche de transfert.
 3. Renommer photoFiche en image. À soumettre en base64 par http dans les fields.
-4. Changer transfer_id en form_id.
-5. En ussd, respecter cette nomenclature YYYYMMDD en int pour les dates.
-6. receiptCount est le nombre de reçus à ajouter dans les metadata.
-7. Pour soumettre les données par http, voici comment faire. On soumet les données de la fiche et les reçus separement :
+4. Remplacer agentId par le username de l'utilisateur connecté dans les transferts(formulaire d'ajout) lors d'un ajout de transfert.
+5. Changer transfer_id en form_id.
+6. En ussd, respecter cette nomenclature YYYYMMDD en int pour les dates.
+7. receiptCount est le nombre de reçus à ajouter dans les metadata.
+8. Pour soumettre les données par http, voici comment faire. On soumet les données de la fiche et les reçus separement :
   - Lorqu'on recupére l'url presigné, on poste les données de la fiche comme ça en body : 
     final payload = {
       "form_id": formId,
@@ -243,3 +244,27 @@ Dans mon code, en tant que developpeur senior, analyse bien et intègre les modi
 
 
  
+Pour rendre les campagnes dynamiques on doit récupérer par api lors de la connexion :
+- La premiere étape consiste à recupérer les commodités : GET /commodities enregistrer en local. On peut afficher dans le profil de l'utilisateur pour lui permettre de changer ou switcher de commodité.
+- La deuxieme étape consiste à recupérer les campagnes uniquement avec status OPEN en parametre : GET /campaigns enregistrer en local.
+Réponse de la liste des campagnes :
+{
+  "items": [
+    {
+      "name": "string",
+      "code": "string",
+      "commodity_code": "strin",
+      "start_date": "2026-01-26T12:13:47.278Z",
+      "end_date": "2026-01-26T12:13:47.278Z",
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "is_active": true,
+      "status": "PENDING"
+    }
+  ],
+  "total": 0,
+  "page": 1,
+  "size": 1,
+  "pages": 0
+}
+On va utiliser que celle active en fonction de la commodité selectionnée ou configurer dans le profil de l'utilisateur.
+Il faut utiliser une commodité par defaut ANACARDE.

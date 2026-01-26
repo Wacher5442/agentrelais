@@ -25,3 +25,12 @@ class LoginSubmitted extends LoginEvent {
 class CheckAuthStatus extends LoginEvent {}
 
 class LogoutRequested extends LoginEvent {}
+
+class CommodityChanged extends LoginEvent {
+  final String commodityCode;
+
+  const CommodityChanged(this.commodityCode);
+
+  @override
+  List<Object> get props => [commodityCode];
+}

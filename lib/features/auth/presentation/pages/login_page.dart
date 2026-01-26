@@ -25,7 +25,7 @@ class _LoginPageState extends State<LoginPage> {
     text: '',
   );
   final TextEditingController regionController = TextEditingController(
-    text: '',
+    text: '20',
   );
 
   bool passwordVisible = false;
@@ -53,7 +53,7 @@ class _LoginPageState extends State<LoginPage> {
                 RouteConstants.changePassword,
               );
             } else {
-              Navigator.pushReplacementNamed(context, RouteConstants.home);
+              Navigator.pushReplacementNamed(context, RouteConstants.sync);
             }
           } else if (state is LoginFailure) {
             CustomSnackbar.showError(context, state.message);

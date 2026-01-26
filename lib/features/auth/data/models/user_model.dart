@@ -15,13 +15,29 @@ class UserModel extends User {
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    // metadata_ is used in profile response, metadata in some other responses
+    final metadata = json['metadata_'] ?? json['metadata'] ?? {};
+
+    // For names, we prefer first_name/last_name but can try to split fullname if present
+    String firstName = json['first_name'] ?? '';
+    String lastName = json['last_name'] ?? '';
+    if (firstName.isEmpty && lastName.isEmpty && json['fullname'] != null) {
+      final parts = (json['fullname'] as String).split(' ');
+      if (parts.isNotEmpty) {
+        firstName = parts.first;
+        if (parts.length > 1) {
+          lastName = parts.sublist(1).join(' ');
+        }
+      }
+    }
+
     return UserModel(
       id: json['id'] ?? '',
-      username: json['username'] ?? '',
-      firstName: json['first_name'] ?? '',
-      lastName: json['last_name'] ?? '',
-      agentCode: json['metadata']?['code'] ?? json['code'],
-      placeOfWork: json['metadata']?['place_of_work'] ?? json['place_of_work'],
+      username: json['username'] ?? json['matricule'] ?? '',
+      firstName: firstName,
+      lastName: lastName,
+      agentCode: json['matricule'] ?? metadata['code'] ?? json['code'],
+      placeOfWork: metadata['place_of_work'] ?? json['place_of_work'],
       isActive: json['is_active'] ?? false,
       isSuperuser: json['is_superuser'] ?? false,
       mustChangePassword: json['must_change_password'] ?? false,
@@ -46,6 +62,26 @@ class UserModel extends User {
       'must_change_password': mustChangePassword,
       'roles': roles.map((e) => (e as UserRoleModel).toJson()).toList(),
     };
+  }
+
+  UserModel copyWith({
+    String? agentCode,
+    String? placeOfWork,
+    String? firstName,
+    String? lastName,
+  }) {
+    return UserModel(
+      id: this.id,
+      username: this.username,
+      isActive: this.isActive,
+      isSuperuser: this.isSuperuser,
+      mustChangePassword: this.mustChangePassword,
+      roles: this.roles,
+      agentCode: agentCode ?? this.agentCode,
+      placeOfWork: placeOfWork ?? this.placeOfWork,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+    );
   }
 }
 

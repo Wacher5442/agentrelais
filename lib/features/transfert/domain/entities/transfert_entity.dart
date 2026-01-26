@@ -4,16 +4,17 @@ import 'receipt_entity.dart';
 
 class TransfertEntity extends Equatable {
   final int? id;
-  final String submissionId;
+  final String numeroFiche; // Now required, primary identifier
   final int formId;
   final String status;
   final String submissionMethod;
   final int createdAt;
   final int updatedAt;
-  final String agentId;
+  final String username; // Replaced agentId
+  final String bundleId; // Concatenation of receipt numbers
+  final String campagne; // Dynamic campaign period
 
   // Champs Métiers
-  final String? numeroFiche;
   final String? typeTransfert;
   final String? sticker;
   final String? date;
@@ -41,21 +42,22 @@ class TransfertEntity extends Equatable {
   final String? permisConduire;
   final String? prix;
   final List<ReceiptEntity> receipts;
-  final String? photoFiche;
+  final String? image; // Renamed from photoFiche
 
   // Configuration pour l'envoi partiel USSD
   final List<String>? ussdFields;
 
   const TransfertEntity({
     this.id,
-    required this.submissionId,
+    required this.numeroFiche,
     required this.formId,
     required this.status,
     required this.submissionMethod,
     required this.createdAt,
     required this.updatedAt,
-    required this.agentId,
-    this.numeroFiche,
+    required this.username,
+    required this.bundleId,
+    required this.campagne,
     this.typeTransfert,
     this.sticker,
     this.date,
@@ -82,13 +84,16 @@ class TransfertEntity extends Equatable {
     this.nomChauffeur,
     this.permisConduire,
     this.prix,
-    this.photoFiche,
+    this.image,
     this.receipts = const [],
     this.ussdFields,
   });
 
   Map<String, dynamic> toFieldsJson() {
     return {
+      'form_id': formId,
+      'bundle_id': bundleId,
+      'campagne': campagne,
       'numeroFiche': numeroFiche,
       'typeTransfert': typeTransfert,
       'sticker': sticker,
@@ -116,10 +121,11 @@ class TransfertEntity extends Equatable {
       'nomChauffeur': nomChauffeur,
       'permisConduire': permisConduire,
       'prix': prix,
+      'image': image,
       'receipts': receipts.map((e) => e.toMap()).toList(),
     };
   }
 
   @override
-  List<Object?> get props => [submissionId, status, createdAt];
+  List<Object?> get props => [numeroFiche, status, createdAt];
 }

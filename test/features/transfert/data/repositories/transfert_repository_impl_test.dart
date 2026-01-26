@@ -48,11 +48,12 @@ void main() {
   ];
 
   final tTransfert = TransfertEntity(
-    submissionId: 'SUB123',
+    username: 'AGENT007',
+    campagne: '2024-2025',
+    bundleId: 'SUB123',
     formId: 5,
     status: 'draft',
     submissionMethod: 'http',
-    agentId: 'AGENT007',
     createdAt: 1234567890,
     updatedAt: 1234567890,
     receipts: tReceipts,
@@ -68,7 +69,7 @@ void main() {
         // Arrange
         when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
         when(
-          mockRemoteDataSource.getUploadUrl(any),
+          mockRemoteDataSource.getUploadUrl(any, any),
         ).thenAnswer((_) async => 'https://api.example.com/upload');
         when(
           mockLocalDataSource.insertTransfert(any),
@@ -91,7 +92,7 @@ void main() {
 
         // Assert
         expect(result.isRight(), true);
-        verify(mockRemoteDataSource.getUploadUrl(any)).called(1);
+        verify(mockRemoteDataSource.getUploadUrl(any, any)).called(1);
         verify(
           mockRemoteDataSource.uploadTransfert(
             url: anyNamed('url'),

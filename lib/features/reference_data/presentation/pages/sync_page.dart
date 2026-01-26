@@ -71,8 +71,11 @@ class _SyncPageState extends State<SyncPage> {
                     ElevatedButton.icon(
                       onPressed: () =>
                           context.read<SyncBloc>().add(const SyncStarted()),
-                      icon: const Icon(Icons.refresh),
-                      label: const Text("RÉESSAYER"),
+                      icon: const Icon(Icons.refresh, color: Colors.white),
+                      label: const Text(
+                        "RÉESSAYER",
+                        style: TextStyle(color: Colors.white),
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF0E8446),
                         padding: const EdgeInsets.symmetric(

@@ -52,19 +52,27 @@ void main() async {
   // 0. Background Sync Init
   await BackgroundSyncService.initialize();
   await BackgroundSyncService.registerPeriodicTask();
-  // 1. Services Core
+  // 1. Services Core & Datasources Early Set
   final dbHelper = DbHelper.instance;
-  final dioClient = DioClient(
-    baseUrl: dotenv.env['BASE_URL_AUTH'] ?? 'https://coco-backend.com/auth/',
+  final authLocalDs = AuthLocalDataSourceImpl(
+    const FlutterSecureStorage(),
+    dbHelper,
   );
+
+  final dioClient = DioClient(
+    baseUrl:
+        dotenv.env['BASE_URL_AUTH'] ??
+        'https://maracko-backend.dev.go.incubtek.com/auth/',
+    accessTokenGetter: authLocalDs.getAccessToken,
+  );
+
   final networkInfo = NetworkInfoImpl(InternetConnection());
   final ussdTransport = MockUssdTransport();
 
-  // 3. Datasources
+  // 3. Datasources (continued)
   final transfertRemoteDs = TransfertRemoteDataSource(dioClient);
   final transfertLocalDs = TransfertLocalDataSourceImpl(dbHelper);
   var authRemoteDs = AuthRemoteDataSourceImpl(dioClient);
-  final authLocalDs = AuthLocalDataSourceImpl(FlutterSecureStorage());
 
   // Reference Data Logic
   final refRemoteDs = ReferenceRemoteDataSource(dioClient);
@@ -166,7 +174,7 @@ class MyApp extends StatelessWidget {
         BlocProvider.value(value: listBloc),
         BlocProvider.value(value: loginBloc),
         BlocProvider.value(value: syncBloc),
-        BlocProvider.value(value: changePasswordBloc), // New
+        BlocProvider.value(value: changePasswordBloc),
       ],
       child: MaterialApp(
         title: 'Agent Relais',

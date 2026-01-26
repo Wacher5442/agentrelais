@@ -121,13 +121,13 @@ class MockTransfertRemoteDataSource extends _i1.Mock
           as _i2.DioClient);
 
   @override
-  _i4.Future<String> getUploadUrl(String? submissionId) =>
+  _i4.Future<String> getUploadUrl(String? filetype, String? username) =>
       (super.noSuchMethod(
-            Invocation.method(#getUploadUrl, [submissionId]),
+            Invocation.method(#getUploadUrl, [filetype, username]),
             returnValue: _i4.Future<String>.value(
               _i7.dummyValue<String>(
                 this,
-                Invocation.method(#getUploadUrl, [submissionId]),
+                Invocation.method(#getUploadUrl, [filetype, username]),
               ),
             ),
           )

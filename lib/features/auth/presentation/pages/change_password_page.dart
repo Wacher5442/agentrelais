@@ -65,8 +65,16 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
           child: Form(
             key: _formKey,
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
+                Row(
+                  children: [
+                    InkWell(
+                      onTap: () {},
+                      child: Image.asset("assets/images/logo.png"),
+                    ),
+                  ],
+                ),
                 const Text(
                   "Vous devez changer votre mot de passe pour continuer.",
                   textAlign: TextAlign.center,

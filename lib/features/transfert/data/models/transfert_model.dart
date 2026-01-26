@@ -13,14 +13,15 @@ class TransfertModel extends TransfertEntity {
 
   const TransfertModel({
     super.id,
-    required super.submissionId,
+    required super.numeroFiche,
     required super.formId,
     required super.status,
     required super.submissionMethod,
     required super.createdAt,
     required super.updatedAt,
-    required super.agentId,
-    super.numeroFiche,
+    required super.username,
+    required super.bundleId,
+    required super.campagne,
     super.typeTransfert,
     super.sticker,
     super.date,
@@ -47,7 +48,7 @@ class TransfertModel extends TransfertEntity {
     super.nomChauffeur,
     super.permisConduire,
     super.prix,
-    super.photoFiche,
+    super.image,
     super.receipts = const [],
     this.payload,
     this.encodedPreview,
@@ -67,11 +68,13 @@ class TransfertModel extends TransfertEntity {
 
     return TransfertModel(
       id: map['id'] as int?,
-      submissionId: map['submissionId'] as String,
+      numeroFiche: map['numeroFiche'] as String,
       formId: map['formId'] as int,
       status: map['status'] as String,
       submissionMethod: map['submissionMethod'] as String? ?? 'local',
-      agentId: map['agentId'] as String,
+      username: map['username'] as String,
+      bundleId: map['bundle_id'] as String? ?? '',
+      campagne: map['campagne'] as String? ?? '2025-2026',
       createdAt: map['createdAt'] as int,
       updatedAt: map['updatedAt'] as int,
       receipts: receiptsList,
@@ -82,7 +85,6 @@ class TransfertModel extends TransfertEntity {
       fieldsJson: map['fieldsJson'] as String?,
 
       // Extraction des champs métiers depuis le JSON fieldsJson
-      numeroFiche: fields['numeroFiche'],
       typeTransfert: map['typeTransfert'] ?? fields['typeTransfert'],
       sticker: fields['sticker'],
       date: fields['date'],
@@ -109,18 +111,21 @@ class TransfertModel extends TransfertEntity {
       nomChauffeur: fields['nomChauffeur'],
       permisConduire: fields['permisConduire'],
       prix: fields['prix'],
+      image: fields['image'],
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'submissionId': submissionId,
+      'numeroFiche': numeroFiche,
       'formId': formId,
       'status': status,
       'submissionMethod': submissionMethod,
       'typeTransfert': typeTransfert,
-      'agentId': agentId,
+      'username': username,
+      'bundle_id': bundleId,
+      'campagne': campagne,
       'createdAt': createdAt,
       'updatedAt': updatedAt,
       'payload': payload,
