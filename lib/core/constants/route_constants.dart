@@ -11,4 +11,9 @@ class RouteConstants {
   static const String profil = '/profil';
   static const String changePassword = '/changePassword';
   static const String sync = '/sync';
+
+  static const String loadingList = '/loadingList';
+  static const String loadingDetail = '/loadingDetail';
+  static const String unloadingList = '/unloadingList';
+  static const String unloadingDetail = '/unloadingDetail';
 }

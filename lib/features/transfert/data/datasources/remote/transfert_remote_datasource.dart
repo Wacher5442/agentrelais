@@ -73,4 +73,57 @@ class TransfertRemoteDataSource {
 
     log('============== END FORM DATA ==============');
   }
+
+  Future<List<dynamic>> getRemoteTransferts() async {
+    try {
+      final resp = await dioClient.get('/transfers');
+      if (resp.statusCode == 200) {
+        return resp.data['items'] as List<dynamic>;
+      }
+      throw Exception('Failed to get transfers');
+    } catch (e) {
+      log("Error fetching transfers: $e");
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> updateTransfert(
+    String sheetNumber,
+    String codeCampaign,
+    Map<String, dynamic> data,
+  ) async {
+    try {
+      final resp = await dioClient.patch(
+        '/commodities/transfer/$sheetNumber/$codeCampaign',
+        data: data,
+      );
+      if (resp.statusCode == 200) {
+        return resp.data;
+      }
+      throw Exception('Failed to update transfer');
+    } catch (e) {
+      log("Error updating transfer: $e");
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> updateStatus(
+    String sheetNumber,
+    String codeCampaign,
+    String status,
+  ) async {
+    try {
+      final resp = await dioClient.patch(
+        '/commodities/transfer/$sheetNumber/$codeCampaign/status',
+        data: {'status': status},
+      );
+      if (resp.statusCode == 200) {
+        return resp.data;
+      }
+      throw Exception('Failed to update status');
+    } catch (e) {
+      log("Error updating status: $e");
+      rethrow;
+    }
+  }
 }

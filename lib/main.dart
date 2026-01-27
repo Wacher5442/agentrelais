@@ -40,8 +40,11 @@ import 'package:agent_relais/features/auth/domain/usecases/check_auth_usecase.da
 import 'features/auth/domain/usecases/change_password_usecase.dart';
 import 'features/auth/presentation/bloc/change_password_bloc.dart';
 import 'features/auth/presentation/pages/change_password_page.dart';
-
-// ... (existing imports)
+import 'features/transfert/presentation/pages/loading_list_page.dart';
+import 'features/transfert/presentation/pages/loading_detail_page.dart';
+import 'features/transfert/presentation/pages/unloading_list_page.dart';
+import 'features/transfert/presentation/pages/unloading_detail_page.dart';
+import 'features/transfert/domain/entities/transfert_entity.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -193,6 +196,23 @@ class MyApp extends StatelessWidget {
           RouteConstants.changePassword: (context) =>
               const ChangePasswordPage(),
           RouteConstants.sync: (context) => const SyncPage(),
+          RouteConstants.loadingList: (context) => const LoadingListPage(),
+          // RouteConstants.loadingDetail is navigated with arguments, so it might need onGenerateRoute or just pushNamed with arguments handling inside?
+          // Actually standard routes map doesn't support arguments in constructor easily.
+          // Usually we use onGenerateRoute or MaterialPageRoute builder.
+          // But here I used Navigator.pushNamed(context, RouteConstants.loadingDetail, arguments: transfert)
+          // So I need a wrapper widget that extracts arguments.
+          RouteConstants.loadingDetail: (context) {
+            final args =
+                ModalRoute.of(context)!.settings.arguments as TransfertEntity;
+            return LoadingDetailPage(transfert: args);
+          },
+          RouteConstants.unloadingList: (context) => const UnloadingListPage(),
+          RouteConstants.unloadingDetail: (context) {
+            final args =
+                ModalRoute.of(context)!.settings.arguments as TransfertEntity;
+            return UnloadingDetailPage(transfert: args);
+          },
         },
       ),
     );

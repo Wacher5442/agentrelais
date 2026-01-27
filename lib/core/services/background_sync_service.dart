@@ -71,7 +71,7 @@ class BackgroundSyncService {
     await Workmanager().registerPeriodicTask(
       simplePeriodicTask,
       syncTaskKey,
-      frequency: const Duration(minutes: 15),
+      frequency: const Duration(minutes: 2),
       constraints: Constraints(networkType: NetworkType.connected),
       existingWorkPolicy: ExistingPeriodicWorkPolicy.keep,
     );

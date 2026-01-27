@@ -84,4 +84,12 @@ class DioClient {
   Future<Response> put(String path, {required dynamic data, Options? options}) {
     return dio.put(path, data: data, options: options);
   }
+
+  Future<Response> patch(
+    String path, {
+    required dynamic data,
+    Options? options,
+  }) {
+    return dio.patch(path, data: data, options: options);
+  }
 }

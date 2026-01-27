@@ -25,6 +25,21 @@ abstract class TransfertRepository {
   // Récupérer la liste des transferts (Clean Architecture)
   Future<Either<Failure, List<TransfertEntity>>> getTransferts();
 
+  // Récupérer la liste des transferts depuis le serveur (Pour Chargement/Déchargement)
+  Future<Either<Failure, List<TransfertEntity>>> getRemoteTransferts();
+
+  // Mettre à jour un transfert (Pour Chargement/Déchargement)
+  Future<Either<Failure, TransfertEntity>> updateRemoteTransfert(
+    TransfertEntity transfert,
+  );
+
+  // Mettre à jour le statut d'un transfert
+  Future<Either<Failure, TransfertEntity>> updateTransfertStatus(
+    String numeroFiche,
+    String codeCampaign,
+    String status,
+  );
+
   // Synchroniser les attente
   Future<int> syncPendingHttpTransferts();
 }

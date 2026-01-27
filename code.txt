@@ -268,3 +268,152 @@ Réponse de la liste des campagnes :
 }
 On va utiliser que celle active en fonction de la commodité selectionnée ou configurer dans le profil de l'utilisateur.
 Il faut utiliser une commodité par defaut ANACARDE.
+
+/// 
+Sur la base de l'existant, L'application est faite avec Clean Architecture et utilise bloc pour la gestion des états.
+En tant que devéloppeur sénior analyse bien le code existant et dans le code ajoute une nouvelle fonctionnalité(feature) pour chargement et déchargement. 
+Cette fonctionnalité est pour le prestataire, nécessite la connexion internet vu que sa zone de travail est couverte par internet.
+- Sur la home page du prestataire, afficher la liste des chargements avec option de recherche par numéro de fiche (sheet_number, sticker_code)
+Un chargement est un transfert(chargement ou déchargement) avec le statut en attente.
+Le prestataire doit pouvoir voir les détails d'un chargement, donner sont ok pour passer au contrôle avant déchargement.
+Quand il donne sont OK pour le chargement, le statut devient Ok pour contrôle(OK_FOR_CONTROL). Et là les études seront faites, par la suite de quoi il peut venir modifier ou ajouter des informations sur le chargement.
+
+Les infos à ajouter sont celles relevé après l'étude.
+"dest_date_dechargement": "2026-01-27",
+"dest_heure": "09:15:04.930Z",
+"dest_nom_exportateur": "string",
+"dest_code_exportateur": "string",
+"dest_port_usine_dechargement": "string",
+"dest_pont_bascule": "string",
+"dest_nom_magasin": "string",
+"dest_kor": "string",
+"dest_nombre_sacs_decharges": 0,
+"dest_nombre_sacs_rembourses": 0,
+"dest_taux_humidite": 0,
+"dest_poids_brut": 0,
+"dest_tare": 0,
+"dest_poids_net": 0,
+"dest_prix_kg": 0,
+S'il saisit et valide, le statut passe à dechargé. À la suite de quoi on doit afficher l'element dans la liste des déchargements.
+
+- Sur la liste de déchargement, le prestataire doit pouvoir voir les détails d'un déchargement, modifier le KOR uniquement(dest_kor). 
+Mais attention, le KOR ne peut être modifié qu'une seule fois par l'utilisateur. Donc mettre les contrôles nécessaires voir des localstorage pour verifier s'il a deja modifié une fois.
+
+Voici un exemple de json de réponse de l'api pour les chargements & déchargements : GET /commodities/transfers
+{
+  "items": [
+    {
+      "typeTransfert": "string",
+      "denomination": "string",
+      "marqueCamion": "string",
+      "region": "string",
+      "departement": "string",
+      "sousPrefecture": "string",
+      "village": "string",
+      "destinationVille": "string",
+      "date": "2026-01-27",
+      "thDepart": "string",
+      "acheteur": "string",
+      "destinateur": "string",
+      "codeAcheteur": "string",
+      "nomMagasin": "string",
+      "sacs": 0,
+      "poids": 0,
+      "prix": 0,
+      "nomTransporteur": "string",
+      "contactTransporteur": "string",
+      "immatriculation": "string",
+      "remorque": "string",
+      "avantCamion": "string",
+      "nomChauffeur": "string",
+      "permisConduire": "string",
+      "dest_date_dechargement": "2026-01-27",
+      "dest_heure": "09:15:04.930Z",
+      "dest_nom_exportateur": "string",
+      "dest_code_exportateur": "string",
+      "dest_port_usine_dechargement": "string",
+      "dest_pont_bascule": "string",
+      "dest_nom_magasin": "string",
+      "dest_kor": "string",
+      "dest_nombre_sacs_decharges": 0,
+      "dest_nombre_sacs_rembourses": 0,
+      "dest_taux_humidite": 0,
+      "dest_poids_brut": 0,
+      "dest_tare": 0,
+      "dest_poids_net": 0,
+      "dest_prix_kg": 0,
+      "numeroFiche": "string",
+      "campagne": "string",
+      "bundle_id": "string",
+      "sticker": "string",
+      "image": "string",
+      "status": "string",
+      "created_at": "2026-01-27T09:15:04.930Z",
+      "updated_at": "2026-01-27T09:15:04.930Z"
+    }
+  ],
+  "total": 0,
+  "page": 1,
+  "size": 1,
+  "pages": 0
+}
+
+ULR POUR UPDATE UN CHARGEMENT OU UN DECHARGEMENT : 
+PATCH /commodities/transfer/{sheet_number}/{code_campaign}
+Body : {
+  "typeTransfert": "string",
+  "denomination": "string",
+  "marqueCamion": "string",
+  "region": "string",
+  "departement": "string",
+  "sousPrefecture": "string",
+  "village": "string",
+  "destinationVille": "string",
+  "date": "2026-01-27",
+  "thDepart": "string",
+  "acheteur": "string",
+  "destinateur": "string",
+  "codeAcheteur": "string",
+  "nomMagasin": "string",
+  "sacs": 0,
+  "poids": 0,
+  "prix": 0,
+  "nomTransporteur": "string",
+  "contactTransporteur": "string",
+  "immatriculation": "string",
+  "remorque": "string",
+  "avantCamion": "string",
+  "nomChauffeur": "string",
+  "permisConduire": "string",
+  "dest_date_dechargement": "2026-01-27",
+  "dest_heure": "09:20:16.222Z",
+  "dest_nom_exportateur": "string",
+  "dest_code_exportateur": "string",
+  "dest_port_usine_dechargement": "string",
+  "dest_pont_bascule": "string",
+  "dest_nom_magasin": "string",
+  "dest_kor": "string",
+  "dest_nombre_sacs_decharges": 0,
+  "dest_nombre_sacs_rembourses": 0,
+  "dest_taux_humidite": 0,
+  "dest_poids_brut": 0,
+  "dest_tare": 0,
+  "dest_poids_net": 0,
+  "dest_prix_kg": 0
+}
+
+
+GET TRANSFERT (CHARGEMENT & DECHARGEMENT) : 
+GET /commodities/transfer/{sheet_number}/{code_campaign}
+
+UPDATE status :
+PATCH /commodities/transfer/{sheet_number}/{code_campaign}/status
+{
+  "status": "PENDING"
+}
+Available values : PENDING, VALIDATION, RECEIVED, UNLOADED, OK_FOR_CONTROL, REJECTED, RETURNED
+
+BASE_URL : https://gisco.com/commodities
+
+Reste fidèle au design existant avec les nouvelles page que tu vas créer, utilise dio déja configuré avec le token
+
