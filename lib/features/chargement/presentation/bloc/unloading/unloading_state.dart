@@ -7,11 +7,11 @@ class UnloadingInitial extends UnloadingState {}
 class UnloadingLoading extends UnloadingState {}
 
 class UnloadingLoaded extends UnloadingState {
-  final List<TransfertEntity> transferts;
-  final List<TransfertEntity> filteredTransferts;
+  final List<ChargementEntity> chargements;
+  final List<ChargementEntity> filteredChargements;
 
-  UnloadingLoaded(this.transferts, {List<TransfertEntity>? filtered})
-    : filteredTransferts = filtered ?? transferts;
+  UnloadingLoaded(this.chargements, {List<ChargementEntity>? filtered})
+    : filteredChargements = filtered ?? chargements;
 }
 
 class UnloadingError extends UnloadingState {

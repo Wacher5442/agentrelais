@@ -417,3 +417,65 @@ BASE_URL : https://gisco.com/commodities
 
 Reste fidèle au design existant avec les nouvelles page que tu vas créer, utilise dio déja configuré avec le token
 
+Ce qui est fait c'est bon mais quelque corrections à apporter, 
+pour eviter de melanger les feature, je préfère que tu enlève la fonctionnalité chargement & déchargement de la feature transfert et de créer une feature dédié(avec les models, datasources, blocs et pages) pour les chargements & déchargements.
+Laisse la feature de transfert comme c'etait et crée pour toi.
+Parceque la liste peut avoir des valeurs nulls pour eviter des exceptions ou erreurs:
+{
+    "items": [
+        {
+            "typeTransfert": "2",
+            "denomination": null,
+            "marqueCamion": null,
+            "region": null,
+            "departement": null,
+            "sousPrefecture": "1502",
+            "village": null,
+            "destinationVille": "0",
+            "date": null,
+            "thDepart": null,
+            "acheteur": null,
+            "destinateur": null,
+            "codeAcheteur": null,
+            "nomMagasin": null,
+            "sacs": null,
+            "poids": null,
+            "prix": null,
+            "nomTransporteur": null,
+            "contactTransporteur": null,
+            "immatriculation": null,
+            "remorque": null,
+            "avantCamion": null,
+            "nomChauffeur": null,
+            "permisConduire": null,
+            "dest_date_dechargement": null,
+            "dest_heure": null,
+            "dest_nom_exportateur": null,
+            "dest_code_exportateur": null,
+            "dest_port_usine_dechargement": null,
+            "dest_pont_bascule": null,
+            "dest_nom_magasin": null,
+            "dest_kor": null,
+            "dest_nombre_sacs_decharges": null,
+            "dest_nombre_sacs_rembourses": null,
+            "dest_taux_humidite": null,
+            "dest_poids_brut": null,
+            "dest_tare": null,
+            "dest_poids_net": null,
+            "dest_prix_kg": null,
+            "numeroFiche": "006762762",
+            "campagne": "2025-2026",
+            "bundle_id": null,
+            "sticker": "S6767762",
+            "image": null,
+            "status": "PENDING",
+            "created_at": "2026-01-26T21:25:13.878922Z",
+            "updated_at": "2026-01-26T21:25:13.878926Z"
+        },
+    ],
+    "total": 4,
+    "page": 1,
+    "size": 50,
+    "pages": 1
+}
+Aussi il faut afficher toutes les informations du chargement ou déchargement dans les pages de détail au lieu d'afficher que celles du déchargement des chargements ou déchargements.

@@ -1,20 +1,20 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../../../domain/entities/transfert_entity.dart';
-import '../../../domain/usecases/get_remote_transferts.dart';
-import '../../../domain/usecases/update_transfert_usecase.dart';
+import '../../../domain/entities/chargement_entity.dart';
+import '../../../domain/usecases/get_chargements.dart';
+import '../../../domain/usecases/update_chargement.dart';
 
 part 'unloading_event.dart';
 part 'unloading_state.dart';
 
 class UnloadingBloc extends Bloc<UnloadingEvent, UnloadingState> {
-  final GetRemoteTransferts getRemoteTransferts;
-  final UpdateTransfertRemote updateRemote;
+  final GetChargements getChargements;
+  final UpdateChargement updateChargement;
   final FlutterSecureStorage secureStorage;
 
   UnloadingBloc({
-    required this.getRemoteTransferts,
-    required this.updateRemote,
+    required this.getChargements,
+    required this.updateChargement,
     required this.secureStorage,
   }) : super(UnloadingInitial()) {
     on<LoadUnloadingsEvent>(_onLoadUnloadings);
@@ -27,12 +27,12 @@ class UnloadingBloc extends Bloc<UnloadingEvent, UnloadingState> {
     Emitter<UnloadingState> emit,
   ) async {
     emit(UnloadingLoading());
-    final result = await getRemoteTransferts();
+    final result = await getChargements();
     result.fold((failure) => emit(UnloadingError(failure.message)), (
-      transferts,
+      chargements,
     ) {
       final validStatuses = ['UNLOADED', 'dechargé'];
-      final unloadingList = transferts
+      final unloadingList = chargements
           .where(
             (t) =>
                 validStatuses.contains(t.status) ||
@@ -51,11 +51,11 @@ class UnloadingBloc extends Bloc<UnloadingEvent, UnloadingState> {
     if (state is UnloadingLoaded) {
       final currentState = state as UnloadingLoaded;
       final query = event.query.toLowerCase();
-      final filtered = currentState.transferts.where((t) {
+      final filtered = currentState.chargements.where((t) {
         return t.numeroFiche.toLowerCase().contains(query) ||
-            (t.sticker != null && t.sticker!.toLowerCase().contains(query));
+            (t.sticker.toLowerCase().contains(query));
       }).toList();
-      emit(UnloadingLoaded(currentState.transferts, filtered: filtered));
+      emit(UnloadingLoaded(currentState.chargements, filtered: filtered));
     }
   }
 
@@ -63,8 +63,7 @@ class UnloadingBloc extends Bloc<UnloadingEvent, UnloadingState> {
     UpdateUnloadingKOREvent event,
     Emitter<UnloadingState> emit,
   ) async {
-    // Check if already modified
-    final key = 'kor_modified_${event.transfert.numeroFiche}';
+    final key = 'kor_modified_${event.chargement.numeroFiche}';
     final alreadyModified = await secureStorage.read(key: key);
 
     if (alreadyModified == 'true') {
@@ -75,10 +74,10 @@ class UnloadingBloc extends Bloc<UnloadingEvent, UnloadingState> {
     emit(UnloadingLoading());
 
     // Update the local entity with new KOR
-    final updatedTransfert = event.transfert.copyWith(destKor: event.kor);
+    final updatedChargement = event.chargement.copyWith(destKor: event.kor);
 
     // Call updateRemote
-    final result = await updateRemote(updatedTransfert);
+    final result = await updateChargement(updatedChargement);
     result.fold((failure) => emit(UnloadingError(failure.message)), (_) async {
       // Mark as modified
       await secureStorage.write(key: key, value: 'true');

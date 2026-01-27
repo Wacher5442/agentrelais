@@ -50,21 +50,6 @@ class TransfertModel extends TransfertEntity {
     super.prix,
     super.image,
     super.receipts = const [],
-    super.destDateDechargement,
-    super.destHeure,
-    super.destNomExportateur,
-    super.destCodeExportateur,
-    super.destPortUsineDechargement,
-    super.destPontBascule,
-    super.destNomMagasin,
-    super.destKor,
-    super.destNombreSacsDecharges,
-    super.destNombreSacsRembourses,
-    super.destTauxHumidite,
-    super.destPoidsBrut,
-    super.destTare,
-    super.destPoidsNet,
-    super.destPrixKg,
     this.payload,
     this.encodedPreview,
     this.totalParts,
@@ -75,9 +60,8 @@ class TransfertModel extends TransfertEntity {
   factory TransfertModel.fromMap(Map<String, dynamic> map) {
     final fields = jsonDecode(map['fieldsJson'] as String? ?? '{}');
     List<ReceiptEntity> receiptsList = [];
-    final rawReceipts = map['receipts'] ?? fields['receipts'];
-    if (rawReceipts != null) {
-      receiptsList = (rawReceipts as List)
+    if (fields['receipts'] != null) {
+      receiptsList = (fields['receipts'] as List)
           .map((e) => ReceiptEntity.fromMap(e))
           .toList();
     }
@@ -100,62 +84,34 @@ class TransfertModel extends TransfertEntity {
       partsSent: map['partsSent'] as int?,
       fieldsJson: map['fieldsJson'] as String?,
 
-      // Extraction des champs métiers depuis le JSON fieldsJson ou map (si remote flatten)
+      // Extraction des champs métiers depuis le JSON fieldsJson
       typeTransfert: map['typeTransfert'] ?? fields['typeTransfert'],
-      sticker: map['sticker'] ?? fields['sticker'],
-      date: map['date'] ?? fields['date'],
-      region: map['region'] ?? fields['region'],
-      departement: map['departement'] ?? fields['departement'],
-      sousPrefecture: map['sousPrefecture'] ?? fields['sousPrefecture'],
-      village: map['village'] ?? fields['village'],
-      destinationVille: map['destinationVille'] ?? fields['destinationVille'],
-      destinateur: map['destinateur'] ?? fields['destinateur'],
-      acheteur: map['acheteur'] ?? fields['acheteur'],
-      contactAcheteur: map['contactAcheteur'] ?? fields['contactAcheteur'],
-      codeAcheteur: map['codeAcheteur'] ?? fields['codeAcheteur'],
-      nomMagasin: map['nomMagasin'] ?? fields['nomMagasin'],
-      denomination: map['denomination'] ?? fields['denomination'],
-      thDepart: map['thDepart'] ?? fields['thDepart'],
-      sacs: map['sacs'] ?? fields['sacs'],
-      poids: map['poids'] ?? fields['poids'],
-      nomTransporteur: map['nomTransporteur'] ?? fields['nomTransporteur'],
-      contactTransporteur:
-          map['contactTransporteur'] ?? fields['contactTransporteur'],
-      marqueCamion: map['marqueCamion'] ?? fields['marqueCamion'],
-      immatriculation: map['immatriculation'] ?? fields['immatriculation'],
-      remorque: map['remorque'] ?? fields['remorque'],
-      avantCamion: map['avantCamion'] ?? fields['avantCamion'],
-      nomChauffeur: map['nomChauffeur'] ?? fields['nomChauffeur'],
-      permisConduire: map['permisConduire'] ?? fields['permisConduire'],
-      prix: map['prix'] ?? fields['prix'],
-      image: map['image'] ?? fields['image'],
-
-      // Champs Destination
-      destDateDechargement:
-          map['dest_date_dechargement'] ?? fields['dest_date_dechargement'],
-      destHeure: map['dest_heure'] ?? fields['dest_heure'],
-      destNomExportateur:
-          map['dest_nom_exportateur'] ?? fields['dest_nom_exportateur'],
-      destCodeExportateur:
-          map['dest_code_exportateur'] ?? fields['dest_code_exportateur'],
-      destPortUsineDechargement:
-          map['dest_port_usine_dechargement'] ??
-          fields['dest_port_usine_dechargement'],
-      destPontBascule: map['dest_pont_bascule'] ?? fields['dest_pont_bascule'],
-      destNomMagasin: map['dest_nom_magasin'] ?? fields['dest_nom_magasin'],
-      destKor: map['dest_kor'] ?? fields['dest_kor'],
-      destNombreSacsDecharges:
-          map['dest_nombre_sacs_decharges'] ??
-          fields['dest_nombre_sacs_decharges'],
-      destNombreSacsRembourses:
-          map['dest_nombre_sacs_rembourses'] ??
-          fields['dest_nombre_sacs_rembourses'],
-      destTauxHumidite:
-          map['dest_taux_humidite'] ?? fields['dest_taux_humidite'],
-      destPoidsBrut: map['dest_poids_brut'] ?? fields['dest_poids_brut'],
-      destTare: map['dest_tare'] ?? fields['dest_tare'],
-      destPoidsNet: map['dest_poids_net'] ?? fields['dest_poids_net'],
-      destPrixKg: map['dest_prix_kg'] ?? fields['dest_prix_kg'],
+      sticker: fields['sticker'],
+      date: fields['date'],
+      region: fields['region'],
+      departement: fields['departement'],
+      sousPrefecture: fields['sousPrefecture'],
+      village: fields['village'],
+      destinationVille: fields['destinationVille'],
+      destinateur: fields['destinateur'],
+      acheteur: fields['acheteur'],
+      contactAcheteur: fields['contactAcheteur'],
+      codeAcheteur: fields['codeAcheteur'],
+      nomMagasin: fields['nomMagasin'],
+      denomination: fields['denomination'],
+      thDepart: fields['thDepart'],
+      sacs: fields['sacs'],
+      poids: fields['poids'],
+      nomTransporteur: fields['nomTransporteur'],
+      contactTransporteur: fields['contactTransporteur'],
+      marqueCamion: fields['marqueCamion'],
+      immatriculation: fields['immatriculation'],
+      remorque: fields['remorque'],
+      avantCamion: fields['avantCamion'],
+      nomChauffeur: fields['nomChauffeur'],
+      permisConduire: fields['permisConduire'],
+      prix: fields['prix'],
+      image: fields['image'],
     );
   }
 
@@ -177,7 +133,6 @@ class TransfertModel extends TransfertEntity {
       'totalParts': totalParts,
       'partsSent': partsSent,
       'fieldsJson': fieldsJson,
-      'image': image,
     };
   }
 }

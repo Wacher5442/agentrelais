@@ -72,8 +72,8 @@ class TransfertLocalDataSourceImpl implements TransfertLocalDataSource {
   Future<List<TransfertModel>> getPendingTransferts() async {
     final rows = await dbHelper.query(
       'transferts',
-      where: 'status IN (?,?,?)',
-      whereArgs: ['en_attente', 'draft', 'envoyé_ussd'],
+      where: 'status IN (?,?,?,?)',
+      whereArgs: ['en_attente', 'draft', 'envoyé_ussd', 'echec'],
     );
     return rows.map((row) => TransfertModel.fromMap(row)).toList();
   }

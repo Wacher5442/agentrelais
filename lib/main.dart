@@ -40,11 +40,11 @@ import 'package:agent_relais/features/auth/domain/usecases/check_auth_usecase.da
 import 'features/auth/domain/usecases/change_password_usecase.dart';
 import 'features/auth/presentation/bloc/change_password_bloc.dart';
 import 'features/auth/presentation/pages/change_password_page.dart';
-import 'features/transfert/presentation/pages/loading_list_page.dart';
-import 'features/transfert/presentation/pages/loading_detail_page.dart';
-import 'features/transfert/presentation/pages/unloading_list_page.dart';
-import 'features/transfert/presentation/pages/unloading_detail_page.dart';
-import 'features/transfert/domain/entities/transfert_entity.dart';
+import 'features/chargement/presentation/pages/loading_list_page.dart';
+import 'features/chargement/presentation/pages/loading_detail_page.dart';
+import 'features/chargement/presentation/pages/unloading_list_page.dart';
+import 'features/chargement/presentation/pages/unloading_detail_page.dart';
+import 'features/chargement/domain/entities/chargement_entity.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -204,14 +204,14 @@ class MyApp extends StatelessWidget {
           // So I need a wrapper widget that extracts arguments.
           RouteConstants.loadingDetail: (context) {
             final args =
-                ModalRoute.of(context)!.settings.arguments as TransfertEntity;
-            return LoadingDetailPage(transfert: args);
+                ModalRoute.of(context)!.settings.arguments as ChargementEntity;
+            return LoadingDetailPage(chargement: args);
           },
           RouteConstants.unloadingList: (context) => const UnloadingListPage(),
           RouteConstants.unloadingDetail: (context) {
             final args =
-                ModalRoute.of(context)!.settings.arguments as TransfertEntity;
-            return UnloadingDetailPage(transfert: args);
+                ModalRoute.of(context)!.settings.arguments as ChargementEntity;
+            return UnloadingDetailPage(chargement: args);
           },
         },
       ),

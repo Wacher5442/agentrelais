@@ -1,36 +1,31 @@
 import 'package:agent_relais/core/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../../../core/db/db_helper.dart';
 import '../../../../core/network/dio_client.dart';
 import '../../../../core/network/network_info_impl.dart';
-import '../../../../core/utils/ussd_transport.dart';
 import '../../../auth/data/datasources/auth_local_datasource.dart';
-import '../../data/datasources/local/transfert_local_datasource.dart';
-import '../../data/datasources/remote/transfert_remote_datasource.dart';
-import '../../data/repositories/transfert_repository_impl.dart';
-import '../../domain/entities/transfert_entity.dart';
-import '../../domain/usecases/get_remote_transferts.dart';
-import '../../domain/usecases/update_transfert_usecase.dart';
+import '../../data/datasources/chargement_remote_datasource.dart';
+import '../../data/repositories/chargement_repository_impl.dart';
+import '../../domain/entities/chargement_entity.dart';
+import '../../domain/usecases/get_chargements.dart';
+import '../../domain/usecases/update_chargement.dart';
 import '../bloc/loading/loading_bloc.dart';
 
 class LoadingDetailPage extends StatelessWidget {
-  final TransfertEntity transfert;
+  final ChargementEntity chargement;
 
-  const LoadingDetailPage({super.key, required this.transfert});
+  const LoadingDetailPage({super.key, required this.chargement});
 
   @override
   Widget build(BuildContext context) {
-    // Setup DI (simplified)
+    // DI Setup
     final dbHelper = DbHelper.instance;
-    final localDataSource = TransfertLocalDataSourceImpl(dbHelper);
-    final networkInfo = NetworkInfoImpl(InternetConnection.createInstance());
-    final ussdTransport = MockUssdTransport();
     final authLocalDs = AuthLocalDataSourceImpl(
       const FlutterSecureStorage(),
       dbHelper,
@@ -41,39 +36,36 @@ class LoadingDetailPage extends StatelessWidget {
           'https://maracko-backend.dev.go.incubtek.com/commodities',
       accessTokenGetter: authLocalDs.getAccessToken,
     );
-    final remoteDataSource = TransfertRemoteDataSource(dioClient);
+    final remoteDataSource = ChargementRemoteDataSource(dioClient);
+    final networkInfo = NetworkInfoImpl(InternetConnection.createInstance());
 
-    final repository = TransfertRepositoryImpl(
-      localDataSource: localDataSource,
+    final repository = ChargementRepositoryImpl(
       remoteDataSource: remoteDataSource,
       networkInfo: networkInfo,
-      ussdTransport: ussdTransport,
     );
 
     return BlocProvider(
       create: (context) => LoadingBloc(
-        getRemoteTransferts: GetRemoteTransferts(repository),
-        updateStatus: UpdateTransfertStatus(repository),
-        updateRemote: UpdateTransfertRemote(
-          repository,
-        ), // Need this for details update
+        getChargements: GetChargements(repository),
+        updateChargementStatus: UpdateChargementStatus(repository),
+        updateChargement: UpdateChargement(repository),
       ),
-      child: _LoadingDetailView(transfert: transfert),
+      child: _LoadingDetailView(chargement: chargement),
     );
   }
 }
 
 class _LoadingDetailView extends StatefulWidget {
-  final TransfertEntity transfert;
+  final ChargementEntity chargement;
 
-  const _LoadingDetailView({required this.transfert});
+  const _LoadingDetailView({required this.chargement});
 
   @override
   State<_LoadingDetailView> createState() => _LoadingDetailViewState();
 }
 
 class _LoadingDetailViewState extends State<_LoadingDetailView> {
-  late TransfertEntity _currentTransfert;
+  late ChargementEntity _currentChargement;
   final _formKey = GlobalKey<FormState>();
 
   final _destDateController = TextEditingController();
@@ -95,57 +87,58 @@ class _LoadingDetailViewState extends State<_LoadingDetailView> {
   @override
   void initState() {
     super.initState();
-    _currentTransfert = widget.transfert;
+    _currentChargement = widget.chargement;
     _initializeControllers();
   }
 
   void _initializeControllers() {
-    _destDateController.text = _currentTransfert.destDateDechargement ?? '';
-    _destHeureController.text = _currentTransfert.destHeure ?? '';
+    _destDateController.text = _currentChargement.destDateDechargement ?? '';
+    _destHeureController.text = _currentChargement.destHeure ?? '';
     _destNomExportateurController.text =
-        _currentTransfert.destNomExportateur ?? '';
+        _currentChargement.destNomExportateur ?? '';
     _destCodeExportateurController.text =
-        _currentTransfert.destCodeExportateur ?? '';
+        _currentChargement.destCodeExportateur ?? '';
     _destPortUsineController.text =
-        _currentTransfert.destPortUsineDechargement ?? '';
-    _destPontBasculeController.text = _currentTransfert.destPontBascule ?? '';
-    _destNomMagasinController.text = _currentTransfert.destNomMagasin ?? '';
-    _destKorController.text = _currentTransfert.destKor ?? '';
+        _currentChargement.destPortUsineDechargement ?? '';
+    _destPontBasculeController.text = _currentChargement.destPontBascule ?? '';
+    _destNomMagasinController.text = _currentChargement.destNomMagasin ?? '';
+    _destKorController.text = _currentChargement.destKor ?? '';
     _destNbSacsDechargesController.text =
-        _currentTransfert.destNombreSacsDecharges?.toString() ?? '';
+        _currentChargement.destNombreSacsDecharges?.toString() ?? '';
     _destNbSacsRemboursesController.text =
-        _currentTransfert.destNombreSacsRembourses?.toString() ?? '';
+        _currentChargement.destNombreSacsRembourses?.toString() ?? '';
     _destTauxHumiditeController.text =
-        _currentTransfert.destTauxHumidite?.toString() ?? '';
+        _currentChargement.destTauxHumidite?.toString() ?? '';
     _destPoidsBrutController.text =
-        _currentTransfert.destPoidsBrut?.toString() ?? '';
-    _destTareController.text = _currentTransfert.destTare?.toString() ?? '';
+        _currentChargement.destPoidsBrut?.toString() ?? '';
+    _destTareController.text = _currentChargement.destTare?.toString() ?? '';
     _destPoidsNetController.text =
-        _currentTransfert.destPoidsNet?.toString() ?? '';
-    _destPrixKgController.text = _currentTransfert.destPrixKg?.toString() ?? '';
+        _currentChargement.destPoidsNet?.toString() ?? '';
+    _destPrixKgController.text =
+        _currentChargement.destPrixKg?.toString() ?? '';
   }
 
   @override
   Widget build(BuildContext context) {
     bool isPending =
-        ['PENDING', 'en_attente'].contains(_currentTransfert.status) ||
+        ['PENDING', 'en_attente'].contains(_currentChargement.status) ||
         [
           'PENDING',
           'en_attente',
-        ].contains(_currentTransfert.status.toUpperCase());
+        ].contains(_currentChargement.status.toUpperCase());
     bool isOkForControl =
         [
           'OK_FOR_CONTROL',
           'ok_pour_controle',
-        ].contains(_currentTransfert.status) ||
+        ].contains(_currentChargement.status) ||
         [
           'OK_FOR_CONTROL',
           'ok_pour_controle',
-        ].contains(_currentTransfert.status.toUpperCase());
+        ].contains(_currentChargement.status.toUpperCase());
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Détail Chargement ${_currentTransfert.numeroFiche}'),
+        title: Text('Détail Chargement ${_currentChargement.numeroFiche}'),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 1,
@@ -167,12 +160,14 @@ class _LoadingDetailViewState extends State<_LoadingDetailView> {
             );
           }
           if (state is LoadingLoaded) {
-            final updated = state.transferts.firstWhere(
-              (element) => element.numeroFiche == _currentTransfert.numeroFiche,
-              orElse: () => _currentTransfert,
-            );
+            final updated = List<ChargementEntity>.from(state.chargements)
+                .firstWhere(
+                  (element) =>
+                      element.numeroFiche == _currentChargement.numeroFiche,
+                  orElse: () => _currentChargement,
+                );
             setState(() {
-              _currentTransfert = updated;
+              _currentChargement = updated;
             });
           }
         },
@@ -191,7 +186,7 @@ class _LoadingDetailViewState extends State<_LoadingDetailView> {
                     onPressed: () {
                       context.read<LoadingBloc>().add(
                         UpdateLoadingStatusEvent(
-                          _currentTransfert,
+                          _currentChargement,
                           'OK_FOR_CONTROL',
                         ),
                       );
@@ -290,12 +285,35 @@ class _LoadingDetailViewState extends State<_LoadingDetailView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Fiche: ${_currentTransfert.numeroFiche}"),
-            Text("Statut: ${_currentTransfert.status}"),
             Text(
-              "Départ: ${_currentTransfert.village} -> ${_currentTransfert.destinationVille}",
+              "Fiche: ${_currentChargement.numeroFiche}",
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-            Text("Transporteur: ${_currentTransfert.nomTransporteur}"),
+            const SizedBox(height: 5),
+            Text("Statut: ${_currentChargement.status}"),
+            Text(
+              "Transporteur: ${_currentChargement.nomTransporteur ?? 'N/A'}",
+            ),
+            Text("Chauffeur: ${_currentChargement.nomChauffeur ?? 'N/A'}"),
+            const Divider(),
+            Text(
+              "Départ: ${_currentChargement.village ?? 'N/A'} (${_currentChargement.departement ?? 'N/A'})",
+            ),
+            Text(
+              "Magasin Provenance: ${_currentChargement.nomMagasin ?? 'N/A'}",
+            ),
+            Text("Sacs départ: ${_currentChargement.sacs ?? '0'}"),
+            Text("Poids départ: ${_currentChargement.poids ?? '0'}"),
+
+            // afficher l'image de la fiche
+            if (_currentChargement.image != null) ...[
+              Image.network(
+                "https://s3.dev.go.incubtek.com/proof/${_currentChargement.image}",
+                height: 200,
+                width: 200,
+                fit: BoxFit.cover,
+              ),
+            ],
           ],
         ),
       ),
@@ -336,7 +354,7 @@ class _LoadingDetailViewState extends State<_LoadingDetailView> {
   }
 
   void _submitDestinationDetails() {
-    final updatedEntity = _currentTransfert.copyWith(
+    final updatedEntity = _currentChargement.copyWith(
       destDateDechargement: _destDateController.text,
       destHeure: _destHeureController.text,
       destNomExportateur: _destNomExportateurController.text,

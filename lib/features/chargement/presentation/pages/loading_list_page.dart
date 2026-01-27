@@ -1,33 +1,32 @@
-import 'package:agent_relais/features/transfert/presentation/bloc/loading/loading_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../../../core/constants/route_constants.dart';
 import '../../../../core/db/db_helper.dart';
 import '../../../../core/network/dio_client.dart';
 import '../../../../core/network/network_info_impl.dart';
-import '../../../../core/utils/ussd_transport.dart';
 import '../../../auth/data/datasources/auth_local_datasource.dart';
-import '../../data/datasources/local/transfert_local_datasource.dart';
-import '../../data/datasources/remote/transfert_remote_datasource.dart';
-import '../../data/repositories/transfert_repository_impl.dart';
-import '../../domain/usecases/get_remote_transferts.dart';
-import '../../domain/usecases/update_transfert_usecase.dart';
-import '../widgets/transfert_card.dart';
+import '../../data/datasources/chargement_remote_datasource.dart';
+import '../../data/repositories/chargement_repository_impl.dart';
+import '../../domain/usecases/get_chargements.dart';
+import '../../domain/usecases/update_chargement.dart';
+import '../bloc/loading/loading_bloc.dart';
+// Decision: Duplicate TransfertCard or create ChargementCard. For speed, I will use TransferListCard adapter logic or just create a new widget.
+// The user prompt said "Afficher toutes les informations". The old card is specific to TransfertEntity.
+// I should create a ChargementCard.
+import '../widgets/chargement_card.dart';
 
 class LoadingListPage extends StatelessWidget {
   const LoadingListPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // DI Setup
     final dbHelper = DbHelper.instance;
-    final localDataSource = TransfertLocalDataSourceImpl(dbHelper);
-    final networkInfo = NetworkInfoImpl(InternetConnection.createInstance());
-    final ussdTransport = MockUssdTransport();
     final authLocalDs = AuthLocalDataSourceImpl(
       const FlutterSecureStorage(),
       dbHelper,
@@ -38,20 +37,19 @@ class LoadingListPage extends StatelessWidget {
           'https://maracko-backend.dev.go.incubtek.com/commodities',
       accessTokenGetter: authLocalDs.getAccessToken,
     );
-    final remoteDataSource = TransfertRemoteDataSource(dioClient);
+    final remoteDataSource = ChargementRemoteDataSource(dioClient);
+    final networkInfo = NetworkInfoImpl(InternetConnection.createInstance());
 
-    final repository = TransfertRepositoryImpl(
-      localDataSource: localDataSource,
+    final repository = ChargementRepositoryImpl(
       remoteDataSource: remoteDataSource,
       networkInfo: networkInfo,
-      ussdTransport: ussdTransport,
     );
 
     return BlocProvider(
       create: (context) => LoadingBloc(
-        getRemoteTransferts: GetRemoteTransferts(repository),
-        updateStatus: UpdateTransfertStatus(repository),
-        updateRemote: UpdateTransfertRemote(repository),
+        getChargements: GetChargements(repository),
+        updateChargementStatus: UpdateChargementStatus(repository),
+        updateChargement: UpdateChargement(repository),
       )..add(LoadLoadingsEvent()),
       child: const _LoadingListView(),
     );
@@ -146,7 +144,7 @@ class _LoadingListViewState extends State<_LoadingListView> {
                 }
 
                 if (state is LoadingLoaded) {
-                  if (state.filteredTransferts.isEmpty) {
+                  if (state.filteredChargements.isEmpty) {
                     return const Center(
                       child: Text("Aucun chargement trouvé."),
                     );
@@ -154,16 +152,16 @@ class _LoadingListViewState extends State<_LoadingListView> {
 
                   return ListView.separated(
                     padding: const EdgeInsets.all(16),
-                    itemCount: state.filteredTransferts.length,
+                    itemCount: state.filteredChargements.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 10),
                     itemBuilder: (context, index) {
-                      final transfert = state.filteredTransferts[index];
+                      final chargement = state.filteredChargements[index];
                       return InkWell(
                         onTap: () {
                           Navigator.pushNamed(
                             context,
                             RouteConstants.loadingDetail,
-                            arguments: transfert,
+                            arguments: chargement,
                           ).then((_) {
                             if (context.mounted) {
                               context.read<LoadingBloc>().add(
@@ -172,7 +170,7 @@ class _LoadingListViewState extends State<_LoadingListView> {
                             }
                           });
                         },
-                        child: TransfertCard(transfert: transfert),
+                        child: ChargementCard(chargement: chargement),
                       );
                     },
                   );

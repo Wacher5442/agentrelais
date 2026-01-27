@@ -62,72 +62,6 @@ class TransfertRepositoryImpl implements TransfertRepository {
   }
 
   @override
-  Future<Either<Failure, List<TransfertEntity>>> getRemoteTransferts() async {
-    try {
-      if (!await networkInfo.isConnected) {
-        return Left(ServerFailure("Pas de connexion internet"));
-      }
-      final data = await remoteDataSource.getRemoteTransferts();
-      // Le back retourne une liste d'objets JSON flatten
-      final List<TransfertEntity> transfers = data.map((e) {
-        return TransfertModel.fromMap(e as Map<String, dynamic>);
-      }).toList();
-      return Right(transfers);
-    } catch (e) {
-      return Left(ServerFailure("Erreur récupération: $e"));
-    }
-  }
-
-  @override
-  Future<Either<Failure, TransfertEntity>> updateRemoteTransfert(
-    TransfertEntity transfert,
-  ) async {
-    try {
-      if (!await networkInfo.isConnected) {
-        return Left(ServerFailure("Pas de connexion internet"));
-      }
-
-      // On prépare les données à envoyer
-      final data = transfert.toFieldsJson();
-      // On retire les reçus car ils ne sont pas gérés ici (upload séparé ou déjà fait)
-      data.remove('receipts');
-      // On retire aussi l'image principale si elle est déjà URL (traitée à part) ou trop grosse ?
-      // Pour l'instant on laisse, le back gère ou on suppose que c'est des métadonnées
-
-      final result = await remoteDataSource.updateTransfert(
-        transfert.numeroFiche,
-        transfert.campagne,
-        data,
-      );
-
-      return Right(TransfertModel.fromMap(result));
-    } catch (e) {
-      return Left(ServerFailure("Erreur mise à jour: $e"));
-    }
-  }
-
-  @override
-  Future<Either<Failure, TransfertEntity>> updateTransfertStatus(
-    String numeroFiche,
-    String codeCampaign,
-    String status,
-  ) async {
-    try {
-      if (!await networkInfo.isConnected) {
-        return Left(ServerFailure("Pas de connexion internet"));
-      }
-      final result = await remoteDataSource.updateStatus(
-        numeroFiche,
-        codeCampaign,
-        status,
-      );
-      return Right(TransfertModel.fromMap(result));
-    } catch (e) {
-      return Left(ServerFailure("Erreur changement statut: $e"));
-    }
-  }
-
-  @override
   Future<Either<Failure, SubmissionResult>> submitTransfert({
     required TransfertEntity transfert,
     required bool forceUssd,
@@ -264,7 +198,7 @@ class TransfertRepositoryImpl implements TransfertRepository {
             );
 
             final receiptPayload = {
-              "form_id": transfert.formId,
+              "form_id": RECU_FORM_ID,
               "fields": {
                 "bundle_id": transfert.bundleId,
                 "numeroRecu": receipt.receiptNumber,

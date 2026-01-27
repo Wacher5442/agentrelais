@@ -58,7 +58,7 @@ class _TranfertsPageState extends State<TranfertsPage> {
                 Expanded(
                   child: _buildDropdown(
                     "Tous les types",
-                    ["ORDINAIRE", "INTÉRIEURE"],
+                    ["ORDINAIRE", "INTÉRIEURE", "USINE"],
                     selectedType,
                     (v) => setState(() => selectedType = v),
                   ),

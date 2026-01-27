@@ -2,9 +2,11 @@ import 'dart:developer';
 
 import 'package:agent_relais/core/constants/ussd_constants.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:workmanager/workmanager.dart';
 
+import '../../features/auth/data/datasources/auth_local_datasource.dart';
 import '../../features/transfert/data/datasources/local/transfert_local_datasource.dart';
 import '../../features/transfert/data/datasources/remote/transfert_remote_datasource.dart';
 import '../../features/transfert/data/repositories/transfert_repository_impl.dart';
@@ -25,14 +27,18 @@ void callbackDispatcher() {
       try {
         // Re-initialize dependencies for background isolate
         final dbHelper = DbHelper.instance;
+        final authLocalDs = AuthLocalDataSourceImpl(
+          const FlutterSecureStorage(),
+          dbHelper,
+        );
         final dioClient = DioClient(
           baseUrl:
               dotenv.env['BASE_URL_AUTH'] ??
               'https://maracko-backend.dev.go.incubtek.com/auth/',
+          accessTokenGetter: authLocalDs.getAccessToken,
         ); // Use env var in real app
         final networkInfo = NetworkInfoImpl(InternetConnection());
-        final ussdTransport =
-            MockUssdTransport(); // Not used for HTTP sync but required by Repo
+        final ussdTransport = MockUssdTransport();
 
         final transfertRemoteDs = TransfertRemoteDataSource(dioClient);
         final transfertLocalDs = TransfertLocalDataSourceImpl(dbHelper);

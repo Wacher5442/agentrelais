@@ -1,4 +1,4 @@
-import 'package:agent_relais/features/transfert/presentation/bloc/unloading/unloading_bloc.dart';
+import 'package:agent_relais/features/chargement/presentation/bloc/unloading/unloading_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -10,14 +10,12 @@ import '../../../../core/constants/route_constants.dart';
 import '../../../../core/db/db_helper.dart';
 import '../../../../core/network/dio_client.dart';
 import '../../../../core/network/network_info_impl.dart';
-import '../../../../core/utils/ussd_transport.dart';
 import '../../../auth/data/datasources/auth_local_datasource.dart';
-import '../../data/datasources/local/transfert_local_datasource.dart';
-import '../../data/datasources/remote/transfert_remote_datasource.dart';
-import '../../data/repositories/transfert_repository_impl.dart';
-import '../../domain/usecases/get_remote_transferts.dart';
-import '../../domain/usecases/update_transfert_usecase.dart';
-import '../widgets/transfert_card.dart';
+import '../../data/datasources/chargement_remote_datasource.dart';
+import '../../data/repositories/chargement_repository_impl.dart';
+import '../../domain/usecases/get_chargements.dart';
+import '../../domain/usecases/update_chargement.dart';
+import '../widgets/chargement_card.dart';
 
 class UnloadingListPage extends StatelessWidget {
   const UnloadingListPage({super.key});
@@ -25,9 +23,6 @@ class UnloadingListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dbHelper = DbHelper.instance;
-    final localDataSource = TransfertLocalDataSourceImpl(dbHelper);
-    final networkInfo = NetworkInfoImpl(InternetConnection.createInstance());
-    final ussdTransport = MockUssdTransport();
     final authLocalDs = AuthLocalDataSourceImpl(
       const FlutterSecureStorage(),
       dbHelper,
@@ -38,19 +33,18 @@ class UnloadingListPage extends StatelessWidget {
           'https://maracko-backend.dev.go.incubtek.com/commodities',
       accessTokenGetter: authLocalDs.getAccessToken,
     );
-    final remoteDataSource = TransfertRemoteDataSource(dioClient);
+    final remoteDataSource = ChargementRemoteDataSource(dioClient);
+    final networkInfo = NetworkInfoImpl(InternetConnection.createInstance());
 
-    final repository = TransfertRepositoryImpl(
-      localDataSource: localDataSource,
+    final repository = ChargementRepositoryImpl(
       remoteDataSource: remoteDataSource,
       networkInfo: networkInfo,
-      ussdTransport: ussdTransport,
     );
 
     return BlocProvider(
       create: (context) => UnloadingBloc(
-        getRemoteTransferts: GetRemoteTransferts(repository),
-        updateRemote: UpdateTransfertRemote(repository),
+        getChargements: GetChargements(repository),
+        updateChargement: UpdateChargement(repository),
         secureStorage: const FlutterSecureStorage(),
       )..add(LoadUnloadingsEvent()),
       child: const _UnloadingListView(),
@@ -145,7 +139,7 @@ class _UnloadingListViewState extends State<_UnloadingListView> {
                 }
 
                 if (state is UnloadingLoaded) {
-                  if (state.filteredTransferts.isEmpty) {
+                  if (state.filteredChargements.isEmpty) {
                     return const Center(
                       child: Text("Aucun déchargement trouvé."),
                     );
@@ -153,16 +147,16 @@ class _UnloadingListViewState extends State<_UnloadingListView> {
 
                   return ListView.separated(
                     padding: const EdgeInsets.all(16),
-                    itemCount: state.filteredTransferts.length,
+                    itemCount: state.filteredChargements.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 10),
                     itemBuilder: (context, index) {
-                      final transfert = state.filteredTransferts[index];
+                      final chargement = state.filteredChargements[index];
                       return InkWell(
                         onTap: () {
                           Navigator.pushNamed(
                             context,
                             RouteConstants.unloadingDetail,
-                            arguments: transfert,
+                            arguments: chargement,
                           ).then((_) {
                             if (context.mounted) {
                               context.read<UnloadingBloc>().add(
@@ -171,7 +165,7 @@ class _UnloadingListViewState extends State<_UnloadingListView> {
                             }
                           });
                         },
-                        child: TransfertCard(transfert: transfert),
+                        child: ChargementCard(chargement: chargement),
                       );
                     },
                   );

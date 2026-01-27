@@ -52,7 +52,7 @@ class ConfirmationPage extends StatelessWidget {
                           horizontal: 20,
                         ),
                         child: Text(
-                          "Votre reçu bord champ a été enregistré dans le système.",
+                          "Votre fiche de transfert a été enregistrée dans le système.",
                           textAlign: TextAlign.center,
                           style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w500,
@@ -73,7 +73,7 @@ class ConfirmationPage extends StatelessWidget {
                             children: [
                               Icon(Icons.cloud_outlined, color: greenSecondary),
                               Text(
-                                "Reçu transmis au système SND",
+                                "Fiche de transfert transmise au système SND",
                                 textAlign: TextAlign.center,
                                 style: GoogleFonts.poppins(
                                   color: greenSecondary,
@@ -83,7 +83,7 @@ class ConfirmationPage extends StatelessWidget {
                               ),
 
                               Text(
-                                "Reçu transmis au système SND",
+                                "Fiche de transfert transmise au système SND",
                                 textAlign: TextAlign.center,
                                 style: GoogleFonts.poppins(
                                   color: greenSecondary,

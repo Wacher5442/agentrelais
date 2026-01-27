@@ -1,8 +1,4 @@
-import 'package:agent_relais/core/constants/colors.dart';
-import 'package:agent_relais/features/home/widgets/header_card.dart';
-import 'package:agent_relais/features/home/widgets/home_card.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:agent_relais/features/home/bloc/home_bloc.dart';
@@ -10,7 +6,6 @@ import 'package:agent_relais/features/transfert/data/datasources/local/transfert
 import 'package:agent_relais/features/auth/presentation/bloc/login_bloc.dart';
 import 'package:agent_relais/core/db/db_helper.dart';
 
-import '../../../core/constants/route_constants.dart';
 import 'dashboard/agent_dashboard.dart';
 import 'dashboard/prestataire_dashboard.dart';
 

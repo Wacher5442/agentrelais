@@ -7,11 +7,11 @@ class LoadingInitial extends LoadingState {}
 class LoadingLoading extends LoadingState {}
 
 class LoadingLoaded extends LoadingState {
-  final List<TransfertEntity> transferts;
-  final List<TransfertEntity> filteredTransferts;
+  final List<ChargementEntity> chargements;
+  final List<ChargementEntity> filteredChargements;
 
-  LoadingLoaded(this.transferts, {List<TransfertEntity>? filtered})
-    : filteredTransferts = filtered ?? transferts;
+  LoadingLoaded(this.chargements, {List<ChargementEntity>? filtered})
+    : filteredChargements = filtered ?? chargements;
 }
 
 class LoadingError extends LoadingState {

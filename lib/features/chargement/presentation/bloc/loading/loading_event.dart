@@ -10,12 +10,12 @@ class SearchLoadingEvent extends LoadingEvent {
 }
 
 class UpdateLoadingStatusEvent extends LoadingEvent {
-  final TransfertEntity transfert;
+  final ChargementEntity chargement;
   final String status;
-  UpdateLoadingStatusEvent(this.transfert, this.status);
+  UpdateLoadingStatusEvent(this.chargement, this.status);
 }
 
 class UpdateLoadingDetailsEvent extends LoadingEvent {
-  final TransfertEntity transfert;
-  UpdateLoadingDetailsEvent(this.transfert);
+  final ChargementEntity chargement;
+  UpdateLoadingDetailsEvent(this.chargement);
 }

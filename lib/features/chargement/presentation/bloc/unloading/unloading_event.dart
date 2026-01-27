@@ -10,7 +10,7 @@ class SearchUnloadingEvent extends UnloadingEvent {
 }
 
 class UpdateUnloadingKOREvent extends UnloadingEvent {
-  final TransfertEntity transfert;
+  final ChargementEntity chargement;
   final String kor;
-  UpdateUnloadingKOREvent(this.transfert, this.kor);
+  UpdateUnloadingKOREvent(this.chargement, this.kor);
 }

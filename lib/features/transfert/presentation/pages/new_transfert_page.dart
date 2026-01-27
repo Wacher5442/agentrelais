@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:agent_relais/core/constants/ussd_constants.dart';
 import 'package:dotted_border/dotted_border.dart';
@@ -100,6 +101,7 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
     super.initState();
     _checkPermissions();
     _loadWarehouses();
+    _initializeRealValues();
     _loadRegions();
   }
 
@@ -122,8 +124,6 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
         'regions',
       );
       setState(() => _regions = items);
-
-      log("--------------- regions items $items-----------------");
 
       // Attempt to auto-select from LoginBloc Active Region
       final loginState = context.read<LoginBloc>().state;
@@ -156,7 +156,6 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
         'region_id',
         regionId,
       );
-      log("--------------- departments items $items-----------------");
       setState(() {
         _departments = items;
         _departments.sort(
@@ -433,9 +432,17 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
       _requestPermissions();
       return;
     }
-    if (!_formKey.currentState!.validate()) return;
 
-    // Extract username and campagne from LoginBloc
+    if (!_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Veuillez corriger les champs obligatoires'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    } // Extract username and campagne from LoginBloc
     final loginState = context.read<LoginBloc>().state;
     String username = 'agent_unknown';
     String campagne = '2025-2026';
@@ -588,7 +595,7 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
                             color: Colors.white,
                           ),
                         ),
-                        value: "1",
+                        value: "ORDINAIRE",
                         groupValue: _typeTransfert,
 
                         activeColor: Colors.white,
@@ -610,7 +617,7 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
                             color: Colors.white,
                           ),
                         ),
-                        value: "2",
+                        value: "INTÉRIEURE",
                         groupValue: _typeTransfert,
                         activeColor: Colors.white,
                         contentPadding: const EdgeInsets.symmetric(
@@ -631,7 +638,7 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
                             color: Colors.white,
                           ),
                         ),
-                        value: "3",
+                        value: "USINE",
                         groupValue: _typeTransfert,
                         activeColor: Colors.white,
                         contentPadding: const EdgeInsets.symmetric(
@@ -719,7 +726,7 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
                   children: [
                     textField(
                       dateChargementController,
-                      label: "Date de déchargement *",
+                      label: "Date de chargement *",
                       hint: "jj/mm/aaaa",
                       validator: requiredValidator,
                       keyboardType: TextInputType.datetime,
@@ -748,7 +755,7 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
                       onChanged: (value) {
                         setState(() {
                           _selectedDepartment = value;
-                          departementController.text = value?['code'] ?? "";
+                          departementController.text = value?['name'] ?? "";
                         });
                         if (value != null)
                           _loadSubPrefectures(value['id'] as String);
@@ -849,7 +856,7 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
                               ),
                               items: _warehouses.map((w) {
                                 return DropdownMenuItem<String>(
-                                  value: w['code'] as String,
+                                  value: w['name'] as String,
                                   child: Text(
                                     w['name'] as String,
                                     overflow: TextOverflow.ellipsis,
@@ -1089,16 +1096,16 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
                 ),
 
                 SizedBox(height: 20),
-                CheckboxListTile(
-                  title: Text("Forcer envoi USSD (Simulation)"),
-                  value: _forceUssd,
-                  onChanged: (val) {
-                    setState(() {
-                      _forceUssd = val ?? false;
-                    });
-                  },
-                ),
-                SizedBox(height: 20),
+                // CheckboxListTile(
+                //   title: Text("Forcer envoi USSD (Simulation)"),
+                //   value: _forceUssd,
+                //   onChanged: (val) {
+                //     setState(() {
+                //       _forceUssd = val ?? false;
+                //     });
+                //   },
+                // ),
+                // SizedBox(height: 20),
               ],
             ),
           ),
@@ -1206,5 +1213,42 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
         ],
       ),
     );
+  }
+
+  String generateNumeroFiche() {
+    final year = DateTime.now().year;
+    final random = Random();
+    final number = random.nextInt(10000).toString().padLeft(4, '0');
+
+    return 'FICH-$year-$number';
+  }
+
+  void _initializeRealValues() {
+    setState(() {
+      numeroFicheController.text = generateNumeroFiche();
+      stickerController.text = "STK-ABJ-9921";
+      dateChargementController.text = "2025-01-27";
+      destinationVilleController.text = "SAN-PEDRO";
+      destinationAcheteurController.text = "USINE CARGILL";
+
+      nomAcheteurController.text = "COOP CA-N'ZRAMA";
+      contactAcheteurController.text = "0708091011";
+      codeAcheteurController.text = "COOP-882";
+      nomMagasinController.text = "MAGASIN CENTRAL B";
+
+      denominationController.text = "CACAO GRADE 1";
+      thDepartController.text = "12.5";
+      nbreSacsController.text = "1500";
+      poidsController.text = "45";
+
+      nomTransporteurController.text = "SOTRACI LOGISTICS";
+      contactTransporteurController.text = "0102030405";
+      marqueCamionController.text = "VOLVO FH16";
+      immatriculationController.text = "1234 HK 01";
+      remorqueController.text = "RE-9902";
+      avantCamionController.text = "AV-7712";
+      nomChauffeurController.text = "KOUASSI AMANI";
+      permisConduireController.text = "AB-00982-2015";
+    });
   }
 }
