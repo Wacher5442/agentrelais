@@ -52,6 +52,7 @@ class DbHelper {
 
     await _createReferenceTables(db);
     await _createCommodityAndCampaignTables(db);
+    await _createReceiptsTable(db);
   }
 
   // Gestion simple de la migration si la DB existait déjà
@@ -97,6 +98,7 @@ class DbHelper {
     }
     if (oldVersion < 5) {
       await _createCommodityAndCampaignTables(db);
+      await _createReceiptsTable(db);
     }
   }
 
@@ -216,6 +218,52 @@ class DbHelper {
         updated_at TEXT
       )
     ''');
+  }
+
+  Future<void> _createReceiptsTable(Database db) async {
+    await db.execute('''
+    CREATE TABLE IF NOT EXISTS receipts (
+      numeroRecu TEXT PRIMARY KEY,
+      campagne TEXT NOT NULL,
+      bundleId TEXT NOT NULL,
+      imagePath TEXT,
+      date INTEGER,
+      departement TEXT,
+      typeTransfert TEXT,
+      sousPrefecture TEXT,
+      village TEXT,
+      numeroAgrement TEXT,
+      nomAcheteur TEXT,
+      nomPisteur TEXT,
+      contactPisteur TEXT,
+      nomProducteur TEXT,
+      villageProducteur TEXT,
+      contactProducteur TEXT,
+      nbSacsAchetes INTEGER,
+      nbSacsRembourses INTEGER,
+      poidsTotal REAL,
+      prixUnitaire REAL,
+      valeurTotale REAL,
+      montantPaye REAL,
+      status TEXT NOT NULL DEFAULT 'draft',
+      agentId TEXT NOT NULL,
+      createdAt INTEGER NOT NULL,
+      updatedAt INTEGER NOT NULL
+    )
+  ''');
+
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_receipts_status ON receipts(status)',
+    );
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_receipts_agent ON receipts(agentId)',
+    );
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_receipts_campagne ON receipts(campagne)',
+    );
+    await db.execute(
+      'CREATE INDEX IF NOT EXISTS idx_receipts_created ON receipts(createdAt)',
+    );
   }
 
   Future<int> insert(String table, Map<String, Object?> values) async {

@@ -17,4 +17,6 @@ class RouteConstants {
   static const String unloadingList = '/unloadingList';
   static const String unloadingDetail = '/unloadingDetail';
   static const String transfertDetail = '/transfertDetail';
+
+  static const String addReceipt = '/addReceiptPage';
 }

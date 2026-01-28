@@ -1,4 +1,14 @@
+import 'package:agent_relais/features/acheteur/data/datasources/home_local_datasource.dart';
+import 'package:agent_relais/features/acheteur/data/repositories/home_repository_impl.dart';
+import 'package:agent_relais/features/acheteur/domain/usecases/get_home_data_usecase.dart';
+import 'package:agent_relais/features/acheteur/presentation/bloc/acheteur_home_bloc.dart';
 import 'package:agent_relais/features/auth/presentation/bloc/login_bloc.dart';
+import 'package:agent_relais/features/receipt/data/datasources/local/receipt_local_datasource.dart';
+import 'package:agent_relais/features/receipt/data/datasources/remote/receipt_remote_datasource.dart';
+import 'package:agent_relais/features/receipt/domain/usecases/submit_receipt_usecase.dart';
+import 'package:agent_relais/features/receipt/domain/usecases/sync_pending_receipts.dart';
+import 'package:agent_relais/features/receipt/presentation/bloc/receipt_submission_bloc.dart';
+import 'package:agent_relais/features/receipt/presentation/pages/add_receipt_page.dart';
 import 'package:agent_relais/features/reference_data/data/datasources/reference_local_datasource.dart';
 import 'package:agent_relais/features/reference_data/data/datasources/reference_remote_datasource.dart';
 import 'package:agent_relais/features/reference_data/presentation/bloc/sync_bloc.dart';
@@ -25,6 +35,7 @@ import 'features/auth/presentation/pages/splash_page.dart';
 import 'features/home/bloc/home_bloc.dart';
 import 'features/home/pages/home_page.dart';
 import 'features/profil/profile_page.dart';
+import 'features/receipt/data/repositories/receipt_repository_impl.dart';
 import 'features/transfert/data/datasources/remote/transfert_remote_datasource.dart';
 import 'features/transfert/data/repositories/transfert_repository_impl.dart';
 import 'features/transfert/domain/usecases/get_transferts_usecase.dart';
@@ -83,10 +94,12 @@ void main() async {
   final transfertRemoteDs = TransfertRemoteDataSource(dioClient);
   final transfertLocalDs = TransfertLocalDataSourceImpl(dbHelper);
   var authRemoteDs = AuthRemoteDataSourceImpl(dioClient);
+  final receiptLocalDs = ReceiptLocalDataSource(dbHelper);
 
   // Reference Data Logic
   final refRemoteDs = ReferenceRemoteDataSource(dioClient);
   final refLocalDs = ReferenceLocalDataSource(dbHelper);
+  final receiptRemoteDs = ReceiptRemoteDataSource(dioClient);
 
   // 4. Repository
   final transfertRepo = TransfertRepositoryImpl(
@@ -117,6 +130,13 @@ void main() async {
     networkInfo: networkInfo,
   );
 
+  final homeLocalDs = HomeLocalDataSourceImpl(dbHelper: dbHelper);
+  final homeRepo = HomeRepositoryImpl(localDataSource: homeLocalDs);
+  final getHomeDataUseCase = GetHomeDataUseCase(homeRepo);
+  final acheteurHomeBloc = AcheteurHomeBloc(
+    getHomeDataUseCase: getHomeDataUseCase,
+  );
+
   // 6. UseCases
   final submitUseCase = SubmitTransfertUseCase(repo: transfertRepo);
   final syncUseCase = SyncPendingTransferts(transfertRepo);
@@ -125,6 +145,22 @@ void main() async {
   final logoutUseCase = LogoutUseCase(authRepo);
   final checkAuthUseCase = CheckAuthUseCase(authRepo);
   final changePasswordUseCase = ChangePasswordUseCase(authRepo);
+
+  final receiptRepo = ReceiptRepositoryImpl(
+    dbHelper: dbHelper,
+    localDataSource: receiptLocalDs,
+    remoteDataSource: receiptRemoteDs,
+    networkInfo: networkInfo,
+  );
+
+  final submitReceiptUseCase = SubmitReceiptUseCase(repo: receiptRepo);
+  final syncReceiptUseCase = SyncPendingReceipts(receiptRepo);
+
+  final receiptSubmissionBloc = ReceiptSubmissionBloc(
+    submitUseCase: submitReceiptUseCase,
+    syncUseCase: syncReceiptUseCase,
+    networkInfo: networkInfo,
+  );
 
   final transfertSubmissionBloc = TransfertSubmissionBloc(
     submitUseCase: submitUseCase,
@@ -156,6 +192,8 @@ void main() async {
       syncBloc: syncBloc,
       changePasswordBloc: changePasswordBloc,
       homeBloc: homeBloc,
+      receiptSubmissionBloc: receiptSubmissionBloc,
+      acheteurHomeBloc: acheteurHomeBloc,
     ),
   );
 }
@@ -167,6 +205,8 @@ class MyApp extends StatelessWidget {
   final SyncBloc syncBloc;
   final ChangePasswordBloc changePasswordBloc;
   final HomeBloc homeBloc;
+  final ReceiptSubmissionBloc receiptSubmissionBloc;
+  final AcheteurHomeBloc acheteurHomeBloc;
 
   const MyApp({
     Key? key,
@@ -176,6 +216,8 @@ class MyApp extends StatelessWidget {
     required this.syncBloc,
     required this.changePasswordBloc,
     required this.homeBloc,
+    required this.receiptSubmissionBloc,
+    required this.acheteurHomeBloc,
   }) : super(key: key);
 
   @override
@@ -188,6 +230,8 @@ class MyApp extends StatelessWidget {
         BlocProvider.value(value: syncBloc),
         BlocProvider.value(value: changePasswordBloc),
         BlocProvider.value(value: homeBloc),
+        BlocProvider.value(value: receiptSubmissionBloc),
+        BlocProvider.value(value: acheteurHomeBloc),
       ],
       child: MaterialApp(
         title: 'Agent Relais',
@@ -236,6 +280,9 @@ class MyApp extends StatelessWidget {
                 ModalRoute.of(context)!.settings.arguments as TransfertEntity;
             return TransfertDetailPage(transfert: args);
           },
+
+          // ACHETEUR
+          RouteConstants.addReceipt: (context) => const NewRecuPage(),
         },
       ),
     );

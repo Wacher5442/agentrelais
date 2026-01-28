@@ -398,7 +398,7 @@ class _UnloadingDetailViewState extends State<_UnloadingDetailView> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _buildText("Sacs départ", _currentChargement.sacs.toString()),
-              _buildText("Poids départ", "${_currentChargement.poids!} Kg"),
+              _buildText("Poids départ", "${_currentChargement.poids!} T"),
             ],
           ),
         if (_currentChargement.sacs != null) const SizedBox(height: 8),
@@ -468,13 +468,13 @@ class _UnloadingDetailViewState extends State<_UnloadingDetailView> {
             "${_currentChargement.destTauxHumidite}%",
           ),
         if (_currentChargement.destPoidsBrut != null)
-          _buildRow("Poids brut :", "${_currentChargement.destPoidsBrut} Kg"),
+          _buildRow("Poids brut :", "${_currentChargement.destPoidsBrut} T"),
         if (_currentChargement.destTare != null)
           _buildRow("Tare :", "${_currentChargement.destTare} Kg"),
         if (_currentChargement.destPoidsNet != null)
           _buildRow(
             "Poids net :",
-            "${_currentChargement.destPoidsNet} Kg",
+            "${_currentChargement.destPoidsNet} T",
             isBold: true,
             color: primaryColor,
             fontsize: 16,

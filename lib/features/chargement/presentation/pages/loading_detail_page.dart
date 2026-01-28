@@ -704,7 +704,7 @@ class _LoadingDetailViewState extends State<_LoadingDetailView> {
             children: [
               _buildText("Nombre de sacs", _currentChargement.sacs.toString()),
               if (_currentChargement.poids != null)
-                _buildText("Poids", "${_currentChargement.poids} Kg"),
+                _buildText("Poids", "${_currentChargement.poids} T"),
             ],
           ),
         if (_currentChargement.sacs != null) const SizedBox(height: 8),

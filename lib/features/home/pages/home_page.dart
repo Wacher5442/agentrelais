@@ -6,6 +6,7 @@ import 'package:agent_relais/features/transfert/data/datasources/local/transfert
 import 'package:agent_relais/features/auth/presentation/bloc/login_bloc.dart';
 import 'package:agent_relais/core/db/db_helper.dart';
 
+import '../../acheteur/presentation/pages/home_page.dart';
 import 'dashboard/agent_dashboard.dart';
 import 'dashboard/prestataire_dashboard.dart';
 
@@ -62,6 +63,8 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildRoleView(String role, LoginSuccess state) {
     switch (role) {
+      case "Acheteur":
+        return AcheteurHomePage();
       case "Prestataire":
         return PrestataireDashboard(userName: state.user.firstName, role: role);
       case "Agent":

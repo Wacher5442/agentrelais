@@ -7,6 +7,9 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 import 'package:workmanager/workmanager.dart';
 
 import '../../features/auth/data/datasources/auth_local_datasource.dart';
+import '../../features/receipt/data/datasources/local/receipt_local_datasource.dart';
+import '../../features/receipt/data/datasources/remote/receipt_remote_datasource.dart';
+import '../../features/receipt/data/repositories/receipt_repository_impl.dart';
 import '../../features/transfert/data/datasources/local/transfert_local_datasource.dart';
 import '../../features/transfert/data/datasources/remote/transfert_remote_datasource.dart';
 import '../../features/transfert/data/repositories/transfert_repository_impl.dart';
@@ -41,6 +44,9 @@ void callbackDispatcher() {
         final transfertRemoteDs = TransfertRemoteDataSource(dioClient);
         final transfertLocalDs = TransfertLocalDataSourceImpl(dbHelper);
 
+        final receiptRemoteDs = ReceiptRemoteDataSource(dioClient);
+        final receiptLocalDs = ReceiptLocalDataSource(dbHelper);
+
         final transfertRepo = TransfertRepositoryImpl(
           localDataSource: transfertLocalDs,
           remoteDataSource: transfertRemoteDs,
@@ -48,9 +54,20 @@ void callbackDispatcher() {
           networkInfo: networkInfo,
         );
 
-        log("Starting background sync...");
+        final receiptRepo = ReceiptRepositoryImpl(
+          dbHelper: dbHelper,
+          localDataSource: receiptLocalDs,
+          remoteDataSource: receiptRemoteDs,
+          networkInfo: networkInfo,
+        );
+
+        log("Starting background transferts sync...");
         final count = await transfertRepo.syncPendingHttpTransferts();
-        log("Background sync completed: $count items synced.");
+        log("Background transferts sync completed: $count items synced.");
+
+        log("Starting background receipts sync...");
+        final count2 = await receiptRepo.syncPendingReceipts();
+        log("Background receipts sync completed: $count2 items synced.");
 
         return Future.value(true);
       } catch (e) {

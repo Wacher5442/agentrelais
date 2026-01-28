@@ -182,7 +182,7 @@ class TransfertDetailPage extends StatelessWidget {
                     children: [
                       _buildText("Nombre de sacs", transfert.sacs!),
                       if (transfert.poids != null)
-                        _buildText("Poids", "${transfert.poids!} Kg"),
+                        _buildText("Poids", "${transfert.poids!} T"),
                     ],
                   ),
                 if (transfert.sacs != null) const SizedBox(height: 8),
