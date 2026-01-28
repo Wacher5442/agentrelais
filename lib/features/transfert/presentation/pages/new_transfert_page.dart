@@ -11,6 +11,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../core/constants/colors.dart';
 import '../../../../core/constants/route_constants.dart';
 import '../../../../core/services/ussd_service.dart';
+import '../../../../core/widgets/custom_camera.dart';
 import '../../domain/entities/receipt_entity.dart';
 import '../../domain/entities/transfert_entity.dart';
 import '../bloc/transfert_submission_bloc.dart';
@@ -156,7 +157,7 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
         regionId,
       );
       setState(() {
-        _departments = items;
+        _departments = List.from(items);
         _departments.sort(
           (a, b) => (a['name'] as String).compareTo(b['name'] as String),
         );
@@ -183,7 +184,7 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
         depId,
       );
       setState(() {
-        _subPrefectures = items;
+        _subPrefectures = List.from(items);
         _subPrefectures.sort(
           (a, b) => (a['name'] as String).compareTo(b['name'] as String),
         );
@@ -207,7 +208,7 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
         subId,
       );
       setState(() {
-        _sectors = items;
+        _sectors = List.from(items);
         _sectors.sort(
           (a, b) => (a['name'] as String).compareTo(b['name'] as String),
         );
@@ -261,8 +262,11 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
   }
 
   Future<void> prendrePhoto() async {
-    final picker = ImagePicker();
-    final image = await picker.pickImage(source: ImageSource.camera);
+    final XFile? image = await Navigator.push<XFile>(
+      context,
+      MaterialPageRoute(builder: (context) => const CustomCameraPage()),
+    );
+
     if (image != null) {
       setState(() {
         photoFiche = image;
@@ -362,41 +366,41 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
               SizedBox(height: 12),
 
               // Bouton proéminent pour scanner
-              OutlinedButton.icon(
-                onPressed: () async {
-                  final scannedNumber = await Navigator.push<String>(
-                    context,
-                    MaterialPageRoute(
-                      fullscreenDialog: true,
-                      builder: (context) => ReceiptNumberScanner(
-                        onNumberDetected: (number) {
-                          Navigator.pop(context, number);
-                        },
-                        numberPattern: RegExp(r'\b\d{5,10}\b'),
-                      ),
-                    ),
-                  );
+              // OutlinedButton.icon(
+              //   onPressed: () async {
+              //     final scannedNumber = await Navigator.push<String>(
+              //       context,
+              //       MaterialPageRoute(
+              //         fullscreenDialog: true,
+              //         builder: (context) => ReceiptNumberScanner(
+              //           onNumberDetected: (number) {
+              //             Navigator.pop(context, number);
+              //           },
+              //           numberPattern: RegExp(r'\b\d{5,10}\b'),
+              //         ),
+              //       ),
+              //     );
 
-                  if (scannedNumber != null) {
-                    setStateDialog(() {
-                      numberController.text = scannedNumber;
-                    });
-                  }
-                },
-                icon: Padding(
-                  padding: const EdgeInsets.only(left: 8.0),
-                  child: Icon(Icons.document_scanner),
-                ),
-                label: Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: Text("Scanner le numéro automatiquement"),
-                ),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: primaryColor,
-                  side: BorderSide(color: primaryColor),
-                  padding: EdgeInsets.symmetric(vertical: 12),
-                ),
-              ),
+              //     if (scannedNumber != null) {
+              //       setStateDialog(() {
+              //         numberController.text = scannedNumber;
+              //       });
+              //     }
+              //   },
+              //   icon: Padding(
+              //     padding: const EdgeInsets.only(left: 8.0),
+              //     child: Icon(Icons.document_scanner),
+              //   ),
+              //   label: Padding(
+              //     padding: const EdgeInsets.only(right: 8.0),
+              //     child: Text("Scanner le numéro automatiquement"),
+              //   ),
+              //   style: OutlinedButton.styleFrom(
+              //     foregroundColor: primaryColor,
+              //     side: BorderSide(color: primaryColor),
+              //     padding: EdgeInsets.symmetric(vertical: 12),
+              //   ),
+              // ),
             ],
           ),
           actions: [

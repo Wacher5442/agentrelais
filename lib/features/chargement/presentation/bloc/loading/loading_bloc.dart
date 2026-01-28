@@ -53,8 +53,8 @@ class LoadingBloc extends Bloc<LoadingEvent, LoadingState> {
       final currentState = state as LoadingLoaded;
       final query = event.query.toLowerCase();
       final filtered = currentState.chargements.where((t) {
-        return t.numeroFiche.toLowerCase().contains(query) ||
-            (t.sticker.toLowerCase().contains(query));
+        return t.numeroFiche.toString().toLowerCase().contains(query) ||
+            (t.sticker.toString().toLowerCase().contains(query));
       }).toList();
       emit(LoadingLoaded(currentState.chargements, filtered: filtered));
     }
@@ -71,6 +71,7 @@ class LoadingBloc extends Bloc<LoadingEvent, LoadingState> {
       event.status,
     );
     result.fold((failure) => emit(LoadingError(failure.message)), (_) {
+      emit(LoadingStatusSuccess("Statut mis à jour"));
       add(LoadLoadingsEvent());
     });
   }

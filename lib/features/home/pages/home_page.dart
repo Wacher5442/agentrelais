@@ -34,13 +34,13 @@ class _HomePageState extends State<HomePage> {
         body: BlocBuilder<LoginBloc, LoginState>(
           builder: (context, loginState) {
             String userName = "Utilisateur";
-            String role = "Agent Relais";
+            String role = "Agent";
             if (loginState is LoginSuccess) {
               userName =
                   "${loginState.user.firstName} ${loginState.user.lastName}";
               role = loginState.user.roles.isNotEmpty
                   ? loginState.user.roles.first.name
-                  : "Agent Relais";
+                  : "Agent";
 
               return BlocProvider(
                 create: (context) => HomeBloc(
@@ -54,118 +54,6 @@ class _HomePageState extends State<HomePage> {
             return const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             );
-            // return BlocBuilder<HomeBloc, HomeState>(
-            //   builder: (context, homeState) {
-            //     return SingleChildScrollView(
-            //       scrollDirection: Axis.vertical,
-            //       padding: EdgeInsets.symmetric(horizontal: 19, vertical: 70),
-            //       child: Column(
-            //         crossAxisAlignment: CrossAxisAlignment.start,
-            //         children: [
-            //           HeaderCard(user: userName, subtitle: role),
-            //           const SizedBox(height: 15),
-            //           HomeCards(
-            //             title: "Fiches ajoutées",
-            //             subtitle: "${homeState.addedCount}",
-            //             icon: Icons.receipt_long_rounded,
-            //             iconColor: Colors.black,
-            //           ),
-            //           const SizedBox(height: 15),
-            //           HomeCards(
-            //             title: "Fiches synchronisées",
-            //             subtitle: "${homeState.syncedCount}",
-            //             icon: Icons.check_circle,
-            //           ),
-
-            //           // Example Role Based Visibility
-            //           if (role == "CONTROLEUR" || role == "DELEGUE") ...[
-            //             const SizedBox(height: 15),
-            //             HomeCards(
-            //               title: "Fiches rejetées",
-            //               subtitle: "0",
-            //               icon: Icons.cancel,
-            //               iconColor: Colors.red,
-            //             ),
-            //           ],
-
-            //           const SizedBox(height: 20),
-            //           Text(
-            //             "Accès rapide",
-            //             style: GoogleFonts.poppins(
-            //               fontSize: 14,
-            //               fontWeight: FontWeight.w400,
-            //             ),
-            //           ),
-            //           const SizedBox(height: 15),
-            //           InkWell(
-            //             onTap: () async {
-            //               await Navigator.pushNamed(
-            //                 context,
-            //                 RouteConstants.transfert,
-            //               );
-            //               if (context.mounted) {
-            //                 context.read<HomeBloc>().add(LoadHomeStats());
-            //               }
-            //             },
-            //             child: HomeCards(
-            //               title: "Demandes de transfert",
-            //               subtitle: "Vérifier les fiches de transfert",
-            //               icon: Icons.receipt_long_rounded,
-            //               iconColor: Colors.white,
-            //               cardColor: primaryColor,
-            //               isTrailing: true,
-            //               titleStyle: GoogleFonts.poppins(
-            //                 fontSize: 14,
-            //                 fontWeight: FontWeight.w700,
-            //                 color: Colors.white,
-            //               ),
-            //               subtitleStyle: GoogleFonts.poppins(
-            //                 fontSize: 12,
-            //                 fontWeight: FontWeight.w400,
-            //                 color: Colors.white,
-            //               ),
-            //             ),
-            //           ),
-            //           const SizedBox(height: 15),
-            //           InkWell(
-            //             // onTap: () {
-            //             //   Navigator.pushNamed(context, RouteConstants.addTransfert);
-            //             // },
-            //             child: HomeCards(
-            //               title: "Déclaration d’entrepôts",
-            //               subtitle: "Valider les entrepôts",
-            //               icon: Icons.storefront_outlined,
-            //               iconColor: Colors.white,
-            //               cardColor: redColor,
-            //               isTrailing: true,
-            //               titleStyle: GoogleFonts.poppins(
-            //                 fontSize: 14,
-            //                 fontWeight: FontWeight.w700,
-            //                 color: Colors.white,
-            //               ),
-            //               subtitleStyle: GoogleFonts.poppins(
-            //                 fontSize: 12,
-            //                 fontWeight: FontWeight.w400,
-            //                 color: Colors.white,
-            //               ),
-            //             ),
-            //           ),
-            //           const SizedBox(height: 20),
-            //           HomeCards(
-            //             title: "Historique des validations",
-            //             subtitle: "Consulter l'historique",
-            //             icon: Icons.history,
-            //             subtitleStyle: GoogleFonts.poppins(
-            //               fontSize: 14,
-            //               fontWeight: FontWeight.w500,
-            //               color: Colors.black,
-            //             ),
-            //           ),
-            //         ],
-            //       ),
-            //     );
-            //   },
-            // );
           },
         ),
       ),
@@ -176,7 +64,7 @@ class _HomePageState extends State<HomePage> {
     switch (role) {
       case "Prestataire":
         return PrestataireDashboard(userName: state.user.firstName, role: role);
-      case "agent":
+      case "Agent":
       default:
         return AgentRelaisDashboard(userName: state.user.firstName, role: role);
     }

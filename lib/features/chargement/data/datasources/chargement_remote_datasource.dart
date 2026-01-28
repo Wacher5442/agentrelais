@@ -58,4 +58,22 @@ class ChargementRemoteDataSource {
       rethrow;
     }
   }
+
+  /// Fetch receipts for a specific bundle
+  Future<List<Map<String, dynamic>>> getReceipts(String bundleId) async {
+    try {
+      final resp = await dioClient.get(
+        '/receipts',
+        queryParameters: {'bundle_id': bundleId},
+      );
+      if (resp.statusCode == 200) {
+        final items = resp.data['items'] as List<dynamic>?;
+        return items?.cast<Map<String, dynamic>>() ?? [];
+      }
+      throw Exception('Failed to get receipts: ${resp.statusCode}');
+    } catch (e) {
+      log("Error fetching receipts: $e");
+      rethrow;
+    }
+  }
 }

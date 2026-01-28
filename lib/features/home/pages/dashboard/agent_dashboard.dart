@@ -34,18 +34,43 @@ class AgentRelaisDashboard extends StatelessWidget {
                 HeaderCard(user: userName, subtitle: role),
                 const SizedBox(height: 15),
 
-                // Statistiques de base
-                HomeCards(
-                  title: "Fiches ajoutées",
-                  subtitle: "${homeState.addedCount}",
-                  icon: Icons.receipt_long_rounded,
-                  iconColor: Colors.black,
+                // Statistiques de base - Clickable
+                InkWell(
+                  onTap: () async {
+                    // Navigate to all fiches (no filter)
+                    await Navigator.pushNamed(
+                      context,
+                      RouteConstants.transfert,
+                    );
+                    if (context.mounted) {
+                      context.read<HomeBloc>().add(LoadHomeStats());
+                    }
+                  },
+                  child: HomeCards(
+                    title: "Fiches ajoutées",
+                    subtitle: "${homeState.addedCount}",
+                    icon: Icons.receipt_long_rounded,
+                    iconColor: Colors.black,
+                  ),
                 ),
                 const SizedBox(height: 15),
-                HomeCards(
-                  title: "Fiches synchronisées",
-                  subtitle: "${homeState.syncedCount}",
-                  icon: Icons.check_circle,
+                InkWell(
+                  onTap: () async {
+                    // Navigate to synchronized fiches only
+                    await Navigator.pushNamed(
+                      context,
+                      RouteConstants.transfert,
+                      arguments: {'statusFilter': 'synchronisé'},
+                    );
+                    if (context.mounted) {
+                      context.read<HomeBloc>().add(LoadHomeStats());
+                    }
+                  },
+                  child: HomeCards(
+                    title: "Fiches synchronisées",
+                    subtitle: "${homeState.syncedCount}",
+                    icon: Icons.check_circle,
+                  ),
                 ),
 
                 const SizedBox(height: 20),

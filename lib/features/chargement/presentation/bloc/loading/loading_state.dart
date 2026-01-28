@@ -23,3 +23,8 @@ class LoadingActionSuccess extends LoadingState {
   final String message;
   LoadingActionSuccess(this.message);
 }
+
+class LoadingStatusSuccess extends LoadingState {
+  final String message;
+  LoadingStatusSuccess(this.message);
+}

@@ -18,9 +18,25 @@ class StatusHelper {
           textColor: const Color(0xFF1E8E3E),
         );
 
+      case 'validated':
+      case 'unloaded':
+        return StatusStyle(
+          label: 'Déchargé',
+          backgroundColor: const Color(0xFFDAF5E0),
+          textColor: const Color(0xFF1E8E3E),
+        );
+
       case 'synchronisé':
         return StatusStyle(
           label: 'Synchronisé',
+          backgroundColor: const Color(0xFFDAF5E0),
+          textColor: const Color(0xFF1E8E3E),
+        );
+
+      case 'ok_for_control':
+      case 'ok_pour_controle':
+        return StatusStyle(
+          label: 'OK pour contrôle',
           backgroundColor: const Color(0xFFDAF5E0),
           textColor: const Color(0xFF1E8E3E),
         );
@@ -35,6 +51,8 @@ class StatusHelper {
 
       case 'echec':
       case 'échec':
+      case 'rejected':
+      case 'returned':
         return StatusStyle(
           label: 'Echec',
           backgroundColor: const Color(0xFFFCE8E6),
@@ -42,6 +60,13 @@ class StatusHelper {
         );
 
       case 'en attente':
+      case 'pending':
+      case 'en_attente':
+        return StatusStyle(
+          label: 'En attente',
+          backgroundColor: const Color(0xFFFFF4CC),
+          textColor: const Color(0xFFB78700),
+        );
       default:
         return StatusStyle(
           label: status,

@@ -17,9 +17,12 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 
 import 'core/constants/route_constants.dart';
+import 'core/di/injection_container.dart';
 import 'core/network/dio_client.dart';
 import 'core/network/network_info_impl.dart';
 import 'features/auth/presentation/pages/login_page.dart';
+import 'features/auth/presentation/pages/splash_page.dart';
+import 'features/home/bloc/home_bloc.dart';
 import 'features/home/pages/home_page.dart';
 import 'features/profil/profile_page.dart';
 import 'features/transfert/data/datasources/remote/transfert_remote_datasource.dart';
@@ -30,6 +33,8 @@ import 'features/transfert/domain/usecases/sync_pending_transferts.dart';
 import 'features/transfert/presentation/bloc/list/transfert_list_bloc.dart';
 import 'features/transfert/presentation/pages/new_transfert_page.dart';
 import 'features/transfert/presentation/pages/tranferts_page.dart';
+import 'features/transfert/presentation/pages/transfert_detail_page.dart';
+import 'features/transfert/domain/entities/transfert_entity.dart';
 import 'package:agent_relais/features/auth/data/datasources/auth_local_datasource.dart';
 import 'package:agent_relais/features/auth/data/datasources/auth_remote_datasource.dart';
 import 'package:agent_relais/features/auth/data/repositories/auth_repository_impl.dart';
@@ -51,6 +56,8 @@ void main() async {
 
   // 0. Environment Init
   await dotenv.load(fileName: ".env");
+  // final di = InjectionContainer();
+  // await di.init();
 
   // 0. Background Sync Init
   await BackgroundSyncService.initialize();
@@ -129,13 +136,13 @@ void main() async {
     getTransfertsUseCase: getTransfertsUseCase,
   );
 
-  // ... (existing blocs)
-
   final loginBloc = LoginBloc(
     loginUseCase: loginUseCase,
     logoutUseCase: logoutUseCase,
     checkAuthUseCase: checkAuthUseCase,
   );
+
+  final homeBloc = HomeBloc(localDataSource: transfertLocalDs);
 
   final changePasswordBloc = ChangePasswordBloc(
     changePasswordUseCase: changePasswordUseCase,
@@ -148,6 +155,7 @@ void main() async {
       loginBloc: loginBloc,
       syncBloc: syncBloc,
       changePasswordBloc: changePasswordBloc,
+      homeBloc: homeBloc,
     ),
   );
 }
@@ -158,6 +166,7 @@ class MyApp extends StatelessWidget {
   final LoginBloc loginBloc;
   final SyncBloc syncBloc;
   final ChangePasswordBloc changePasswordBloc;
+  final HomeBloc homeBloc;
 
   const MyApp({
     Key? key,
@@ -166,6 +175,7 @@ class MyApp extends StatelessWidget {
     required this.loginBloc,
     required this.syncBloc,
     required this.changePasswordBloc,
+    required this.homeBloc,
   }) : super(key: key);
 
   @override
@@ -177,6 +187,7 @@ class MyApp extends StatelessWidget {
         BlocProvider.value(value: loginBloc),
         BlocProvider.value(value: syncBloc),
         BlocProvider.value(value: changePasswordBloc),
+        BlocProvider.value(value: homeBloc),
       ],
       child: MaterialApp(
         title: 'Agent Relais',
@@ -185,12 +196,19 @@ class MyApp extends StatelessWidget {
           primarySwatch: Colors.green,
           primaryColor: const Color(0xFF0E8446),
         ),
-        initialRoute: RouteConstants.login,
+        initialRoute: RouteConstants.splash,
         routes: {
+          RouteConstants.splash: (context) => const SplashPage(),
           RouteConstants.login: (context) => LoginPage(),
           RouteConstants.home: (context) => HomePage(),
           RouteConstants.profil: (context) => ProfilePage(),
-          RouteConstants.transfert: (context) => TranfertsPage(),
+          RouteConstants.transfert: (context) {
+            final args =
+                ModalRoute.of(context)?.settings.arguments
+                    as Map<String, dynamic>?;
+            final statusFilter = args?['statusFilter'] as String?;
+            return TranfertsPage(initialStatusFilter: statusFilter);
+          },
           RouteConstants.addTransfert: (context) => NewTransfertPage(),
           RouteConstants.confirmation: (context) => const ConfirmationPage(),
           RouteConstants.changePassword: (context) =>
@@ -212,6 +230,11 @@ class MyApp extends StatelessWidget {
             final args =
                 ModalRoute.of(context)!.settings.arguments as ChargementEntity;
             return UnloadingDetailPage(chargement: args);
+          },
+          RouteConstants.transfertDetail: (context) {
+            final args =
+                ModalRoute.of(context)!.settings.arguments as TransfertEntity;
+            return TransfertDetailPage(transfert: args);
           },
         },
       ),

@@ -87,7 +87,9 @@ class ChargementCard extends StatelessWidget {
                       ),
                       Text(
                         // Assuming simple display or formatting if helper available
-                        "${chargement.poids ?? '-'}",
+                        chargement.poids != null
+                            ? '${chargement.poids} T'
+                            : '-',
                         style: GoogleFonts.poppins(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,

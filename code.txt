@@ -479,3 +479,57 @@ Parceque la liste peut avoir des valeurs nulls pour eviter des exceptions ou err
     "pages": 1
 }
 Aussi il faut afficher toutes les informations du chargement ou déchargement dans les pages de détail au lieu d'afficher que celles du déchargement des chargements ou déchargements.
+
+////////////
+Dans mon système actuel, analyse et apporte apporter des corrections :
+Quand l'utilisateur se connecte, la session est persistée mais au redemarrage de l'application, on demande encore de se connecter, il faut corriger ça. 
+Quand le token n'a pas encore expiré, il faut rediriger l'utilisateur vers la page d'accueil au lieu de demander de se connecter.
+
+Le deuxieme point c'est si le rôle de l'utilisateur est différent de agent, on ne doit pas faire de syncrhonisation, il faut rediriger l'utilisateur vers la page d'accueil.
+
+Le troisieme point, permettre de cliquer sur HomeCards dans AgentRelaisDashboard pour voir les fiches synchronisées et Fiches ajoutées.
+
+Dans la page des fiches(TranfertsPage) il faut créer une page de détail pour afficher les détails de la fiche avec les images des reçus et fiche, utilise cet exemple de template en dessous :
+
+
+
+///////
+
+Je veux que tu fasse ces ameliorations sur l'application :
+
+1. Inspire toi du design de TransfertDetailPage pour afficher les détails d'un chargement ou déchargement dans la page de détail(LoadingDetailPage et UnloadingDetailPage).
+   Pour afficher les images d'un chargement ou déchargement, il faut les récuperer par api : GET /commodities/receipts/ avec le bundleId dans le chargement en parametre.
+
+Voici un exemple de réponse de l'api pour récuperer les reçus :
+{
+    "items": [
+         {
+            "numeroRecu": "4477253",
+            "campagne": "2025-2026",
+            "bundle_id": "44772514477253",
+            "image": "image_475b5e99.jpg",
+            "date": null,
+            "departement": null,
+            "typeTransfert": null,
+            "sousPrefecture": null,
+            "village": null,
+            "numeroAgrement": null,
+            "nomAcheteur": null,
+            "nomPisteur": null,
+            "contactPisteur": null,
+            "nomProducteur": null,
+            "villageProducteur": null,
+            "contactProducteur": null,
+            "nbSacsAchetes": null,
+            "nbSacsRembourses": null,
+            "poidsTotal": null,
+            "prixUnitaire": null,
+            "valeurTotale": null,
+            "montantPaye": null
+        },
+    ],
+    "total": 0,
+    "page": 1,
+    "size": 1,
+    "pages": 0
+}

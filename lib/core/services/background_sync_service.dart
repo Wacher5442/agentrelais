@@ -32,9 +32,7 @@ void callbackDispatcher() {
           dbHelper,
         );
         final dioClient = DioClient(
-          baseUrl:
-              dotenv.env['BASE_URL_AUTH'] ??
-              'https://maracko-backend.dev.go.incubtek.com/auth/',
+          baseUrl: 'https://maracko-backend.dev.go.incubtek.com',
           accessTokenGetter: authLocalDs.getAccessToken,
         ); // Use env var in real app
         final networkInfo = NetworkInfoImpl(InternetConnection());
@@ -77,7 +75,7 @@ class BackgroundSyncService {
     await Workmanager().registerPeriodicTask(
       simplePeriodicTask,
       syncTaskKey,
-      frequency: const Duration(minutes: 2),
+      frequency: const Duration(minutes: 15),
       constraints: Constraints(networkType: NetworkType.connected),
       existingWorkPolicy: ExistingPeriodicWorkPolicy.keep,
     );

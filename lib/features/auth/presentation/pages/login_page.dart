@@ -53,7 +53,17 @@ class _LoginPageState extends State<LoginPage> {
                 RouteConstants.changePassword,
               );
             } else {
-              Navigator.pushReplacementNamed(context, RouteConstants.sync);
+              // Check user role
+              final userRole = state.user.roles.isNotEmpty
+                  ? state.user.roles.first.name
+                  : '';
+
+              // Only agents go to sync page, others go directly to home
+              if (userRole.toLowerCase() == 'agent') {
+                Navigator.pushReplacementNamed(context, RouteConstants.sync);
+              } else {
+                Navigator.pushReplacementNamed(context, RouteConstants.home);
+              }
             }
           } else if (state is LoginFailure) {
             CustomSnackbar.showError(context, state.message);

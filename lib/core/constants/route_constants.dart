@@ -16,4 +16,5 @@ class RouteConstants {
   static const String loadingDetail = '/loadingDetail';
   static const String unloadingList = '/unloadingList';
   static const String unloadingDetail = '/unloadingDetail';
+  static const String transfertDetail = '/transfertDetail';
 }

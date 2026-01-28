@@ -3,6 +3,7 @@ import '../../domain/entities/chargement_entity.dart';
 class ChargementModel extends ChargementEntity {
   const ChargementModel({
     required super.numeroFiche,
+    required super.bundleId,
     required super.campagne,
     required super.sticker,
     required super.status,
@@ -53,6 +54,7 @@ class ChargementModel extends ChargementEntity {
   factory ChargementModel.fromJson(Map<dynamic, dynamic> json) {
     return ChargementModel(
       numeroFiche: json['numeroFiche'] as dynamic,
+      bundleId: json['bundle_id'] as dynamic,
       campagne: json['campagne'] as dynamic ?? '2025-2026',
       sticker: json['sticker'] as dynamic ?? '',
       status: json['status'] as dynamic ?? 'PENDING',

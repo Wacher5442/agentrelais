@@ -7,7 +7,9 @@ import '../bloc/list/transfert_list_bloc.dart';
 import '../widgets/transfert_card.dart';
 
 class TranfertsPage extends StatefulWidget {
-  const TranfertsPage({super.key});
+  final String? initialStatusFilter;
+
+  const TranfertsPage({super.key, this.initialStatusFilter});
 
   @override
   State<TranfertsPage> createState() => _TranfertsPageState();
@@ -20,7 +22,9 @@ class _TranfertsPageState extends State<TranfertsPage> {
   @override
   void initState() {
     super.initState();
-    // On charge la liste dès l'ouverture
+    // Initialize filter from parameter if provided
+    selectedStatus = widget.initialStatusFilter;
+    // Load transfers list
     context.read<TransfertListBloc>().add(LoadTransfertsEvent());
   }
 
@@ -119,7 +123,14 @@ class _TranfertsPageState extends State<TranfertsPage> {
                     separatorBuilder: (_, __) => const SizedBox(height: 10),
                     itemBuilder: (context, index) => TransfertCard(
                       transfert: filteredList[index],
-                    ), // Assurez-vous que TransfertCard accepte TransfertEntity
+                      onTap: () {
+                        Navigator.pushNamed(
+                          context,
+                          RouteConstants.transfertDetail,
+                          arguments: filteredList[index],
+                        );
+                      },
+                    ),
                   );
                 }
 

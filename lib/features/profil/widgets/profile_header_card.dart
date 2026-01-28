@@ -43,7 +43,10 @@ class ProfileHeaderCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(height: 15),
-                    SvgPicture.asset("assets/images/icon_person.svg"),
+                    InkWell(
+                      onTap: () => Navigator.pop(context),
+                      child: SvgPicture.asset("assets/images/icon_person.svg"),
+                    ),
                     Text(
                       user,
                       style: GoogleFonts.poppins(

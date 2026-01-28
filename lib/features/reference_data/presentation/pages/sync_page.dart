@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/constants/route_constants.dart';
+import '../../../auth/presentation/bloc/login_bloc.dart';
 import '../bloc/sync_bloc.dart';
 
 class SyncPage extends StatefulWidget {
@@ -15,6 +16,29 @@ class _SyncPageState extends State<SyncPage> {
   @override
   void initState() {
     super.initState();
+    _checkRoleAndSync();
+  }
+
+  void _checkRoleAndSync() {
+    // Check if user is an agent before syncing
+    final loginBloc = context.read<LoginBloc>();
+    final loginState = loginBloc.state;
+
+    if (loginState is LoginSuccess) {
+      final userRole = loginState.user.roles.isNotEmpty
+          ? loginState.user.roles.first.name
+          : '';
+
+      // Only agents should sync, others go directly to home
+      if (userRole.toLowerCase() != 'agent') {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Navigator.pushReplacementNamed(context, RouteConstants.home);
+        });
+        return;
+      }
+    }
+
+    // Start sync for agents
     context.read<SyncBloc>().add(const SyncStarted());
   }
 

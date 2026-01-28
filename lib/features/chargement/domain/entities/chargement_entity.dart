@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 
 class ChargementEntity extends Equatable {
   final dynamic numeroFiche;
+  final dynamic bundleId;
   final dynamic campagne;
   final dynamic sticker;
   final dynamic status;
@@ -51,6 +52,7 @@ class ChargementEntity extends Equatable {
 
   const ChargementEntity({
     required this.numeroFiche,
+    required this.bundleId,
     required this.campagne,
     required this.sticker,
     required this.status,
@@ -146,6 +148,7 @@ class ChargementEntity extends Equatable {
   }) {
     return ChargementEntity(
       numeroFiche: numeroFiche ?? this.numeroFiche,
+      bundleId: bundleId ?? bundleId,
       campagne: campagne ?? this.campagne,
       sticker: sticker ?? this.sticker,
       status: status ?? this.status,
@@ -219,7 +222,7 @@ class ChargementEntity extends Equatable {
 
   @override
   List<Object?> get props => [
-    numeroFiche, sticker, status, typeTransfert,
+    numeroFiche, bundleId, sticker, status, typeTransfert,
     destKor, destPoidsNet, // Add significant fields for comparison if needed
   ];
 }
