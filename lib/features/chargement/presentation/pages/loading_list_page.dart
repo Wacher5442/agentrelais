@@ -15,9 +15,6 @@ import '../../data/repositories/chargement_repository_impl.dart';
 import '../../domain/usecases/get_chargements.dart';
 import '../../domain/usecases/update_chargement.dart';
 import '../bloc/loading/loading_bloc.dart';
-// Decision: Duplicate TransfertCard or create ChargementCard. For speed, I will use TransferListCard adapter logic or just create a new widget.
-// The user prompt said "Afficher toutes les informations". The old card is specific to TransfertEntity.
-// I should create a ChargementCard.
 import '../widgets/chargement_card.dart';
 
 class LoadingListPage extends StatelessWidget {

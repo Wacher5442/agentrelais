@@ -31,7 +31,14 @@ class UnloadingBloc extends Bloc<UnloadingEvent, UnloadingState> {
     result.fold((failure) => emit(UnloadingError(failure.message)), (
       chargements,
     ) {
-      final validStatuses = ['UNLOADED', 'dechargé'];
+      final validStatuses = [
+        'UNLOADED',
+        'dechargé',
+        'RETURNED',
+        'REJECTED',
+        'retourner',
+        'rejeter',
+      ];
       final unloadingList = chargements
           .where(
             (t) =>

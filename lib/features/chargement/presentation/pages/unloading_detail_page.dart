@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -113,6 +112,13 @@ class _UnloadingDetailViewState extends State<_UnloadingDetailView> {
     }
   }
 
+  bool get _isUnloaded {
+    return [
+      'UNLOADED',
+      'unloaded',
+    ].contains(_currentChargement.status.toLowerCase());
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<UnloadingBloc, UnloadingState>(
@@ -177,6 +183,12 @@ class _UnloadingDetailViewState extends State<_UnloadingDetailView> {
               if (_currentChargement.destNombreSacsDecharges != null ||
                   _currentChargement.destPoidsNet != null)
                 const SizedBox(height: 16),
+
+              if (_currentChargement.destObservations != null)
+                _buildObservations(),
+              if (_currentChargement.destObservations != null)
+                const SizedBox(height: 16),
+
               if (_currentChargement.image != null) _buildFicheImage(),
               if (_currentChargement.image != null) const SizedBox(height: 16),
               if (_receipts.isNotEmpty || _isLoadingReceipts)
@@ -185,18 +197,20 @@ class _UnloadingDetailViewState extends State<_UnloadingDetailView> {
             ],
           ),
         ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () => _showKorEditDialog(context),
-          backgroundColor: primaryColor,
-          icon: const Icon(Icons.edit_outlined, color: Colors.white),
-          label: Text(
-            'Modifier KOR',
-            style: GoogleFonts.poppins(
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
+        floatingActionButton: _isUnloaded
+            ? FloatingActionButton.extended(
+                onPressed: () => _showKorEditDialog(context),
+                backgroundColor: primaryColor,
+                icon: const Icon(Icons.edit_outlined, color: Colors.white),
+                label: Text(
+                  'Modifier KOR',
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              )
+            : null,
       ),
     );
   }
@@ -467,6 +481,13 @@ class _UnloadingDetailViewState extends State<_UnloadingDetailView> {
             "Taux humidité :",
             "${_currentChargement.destTauxHumidite}%",
           ),
+        if (_currentChargement.destTauxDefectueux != null)
+          _buildRow(
+            "Taux défectueux :",
+            "${_currentChargement.destTauxDefectueux}%",
+          ),
+        if (_currentChargement.destGrainage != null)
+          _buildRow("Grainage :", "${_currentChargement.destGrainage}"),
         if (_currentChargement.destPoidsBrut != null)
           _buildRow("Poids brut :", "${_currentChargement.destPoidsBrut} T"),
         if (_currentChargement.destTare != null)
@@ -485,6 +506,16 @@ class _UnloadingDetailViewState extends State<_UnloadingDetailView> {
             "${_currentChargement.destPrixKg} F",
             color: primaryColor,
           ),
+      ],
+    );
+  }
+
+  Widget _buildObservations() {
+    return _SectionCard(
+      title: "Observations",
+      icon: Icons.note_alt_outlined,
+      children: [
+        _buildRow("Observations :", "${_currentChargement.destObservations}"),
       ],
     );
   }
@@ -647,6 +678,12 @@ class _UnloadingDetailViewState extends State<_UnloadingDetailView> {
       case 'OK_FOR_CONTROL':
       case 'OK_POUR_CONTROLE':
         return Colors.blue;
+      case 'RETURNED':
+      case 'RETOURNER':
+        return const Color.fromARGB(255, 236, 213, 3);
+      case 'REJECTED':
+      case 'REJETER':
+        return Colors.red;
       default:
         return Colors.grey;
     }
@@ -664,6 +701,10 @@ class _UnloadingDetailViewState extends State<_UnloadingDetailView> {
         return 'OK pour contrôle';
       case 'UNLOADED':
         return 'Déchargé';
+      case 'RETURNED':
+        return 'Retourné';
+      case 'REJECTED':
+        return 'Rejeté';
       default:
         return status;
     }

@@ -49,6 +49,9 @@ class ChargementEntity extends Equatable {
   final num? destTare;
   final num? destPoidsNet;
   final num? destPrixKg;
+  final num? destTauxDefectueux;
+  final num? destGrainage;
+  final dynamic destObservations;
 
   const ChargementEntity({
     required this.numeroFiche,
@@ -97,6 +100,9 @@ class ChargementEntity extends Equatable {
     this.destTare,
     this.destPoidsNet,
     this.destPrixKg,
+    this.destTauxDefectueux,
+    this.destGrainage,
+    this.destObservations,
   });
 
   ChargementEntity copyWith({
@@ -145,6 +151,9 @@ class ChargementEntity extends Equatable {
     dynamic destTare,
     dynamic destPoidsNet,
     dynamic destPrixKg,
+    dynamic destTauxDefectueux,
+    dynamic destGrainage,
+    dynamic destObservations,
   }) {
     return ChargementEntity(
       numeroFiche: numeroFiche ?? this.numeroFiche,
@@ -196,6 +205,9 @@ class ChargementEntity extends Equatable {
       destTare: destTare ?? this.destTare,
       destPoidsNet: destPoidsNet ?? this.destPoidsNet,
       destPrixKg: destPrixKg ?? this.destPrixKg,
+      destTauxDefectueux: destTauxDefectueux ?? this.destTauxDefectueux,
+      destGrainage: destGrainage ?? this.destGrainage,
+      destObservations: destObservations ?? this.destObservations,
     );
   }
 
@@ -217,6 +229,9 @@ class ChargementEntity extends Equatable {
       'dest_tare': destTare,
       'dest_poids_net': destPoidsNet,
       'dest_prix_kg': destPrixKg,
+      'dest_taux_defectueux': destTauxDefectueux,
+      'dest_grainage': destGrainage,
+      'dest_observations': destObservations,
     };
   }
 

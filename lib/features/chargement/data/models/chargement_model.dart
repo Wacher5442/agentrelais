@@ -49,6 +49,9 @@ class ChargementModel extends ChargementEntity {
     super.destTare,
     super.destPoidsNet,
     super.destPrixKg,
+    super.destTauxDefectueux,
+    super.destGrainage,
+    super.destObservations,
   });
 
   factory ChargementModel.fromJson(Map<dynamic, dynamic> json) {
@@ -101,6 +104,9 @@ class ChargementModel extends ChargementEntity {
       destTare: json['dest_tare'] as num?,
       destPoidsNet: json['dest_poids_net'] as num?,
       destPrixKg: json['dest_prix_kg'] as num?,
+      destTauxDefectueux: json['dest_taux_defectueux'] as num?,
+      destGrainage: json['dest_grainage'] as num?,
+      destObservations: json['dest_observations'] as dynamic,
     );
   }
 }

@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -208,6 +206,7 @@ class _LoadingDetailViewState extends State<_LoadingDetailView> {
             ],
           ),
         ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         floatingActionButton: _buildActionButton(context),
       ),
     );
@@ -283,16 +282,47 @@ class _LoadingDetailViewState extends State<_LoadingDetailView> {
         ),
       );
     } else if (_isOkForControl) {
-      return FloatingActionButton.extended(
-        onPressed: () => _showUnloadingFormDialog(context),
-        backgroundColor: primaryColor,
-        icon: const Icon(Icons.edit_outlined, color: Colors.white),
-        label: Text(
-          'Saisir déchargement',
-          style: GoogleFonts.poppins(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: [
+            // Bouton de rejet/retour
+            Expanded(
+              child: FloatingActionButton.extended(
+                heroTag: "reject_btn",
+                onPressed: () => _showRejectionDialog(context),
+                backgroundColor: Colors.redAccent,
+                icon: const Icon(Icons.cancel_outlined, color: Colors.white),
+                label: Text(
+                  'Rejeter/Retour',
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+
+            // Bouton de déchargement normal
+            Expanded(
+              child: FloatingActionButton.extended(
+                heroTag: "unload_btn",
+                onPressed: () => _showUnloadingFormDialog(context),
+                backgroundColor: primaryColor,
+                icon: const Icon(Icons.edit_outlined, color: Colors.white),
+                label: Text(
+                  'Déchargement',
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       );
     }
@@ -326,6 +356,98 @@ class _LoadingDetailViewState extends State<_LoadingDetailView> {
             style: ElevatedButton.styleFrom(backgroundColor: primaryColor),
             child: Text(
               'Confirmer',
+              style: GoogleFonts.poppins(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showRejectionDialog(BuildContext context) {
+    final formKey = GlobalKey<FormState>();
+    String selectedStatus = 'REJECTED';
+    final humitidyController = TextEditingController();
+    final observationController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        title: Text(
+          'Rejet ou Retour',
+          style: GoogleFonts.poppins(fontWeight: FontWeight.w700),
+        ),
+        content: Form(
+          key: formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                DropdownButtonFormField<String>(
+                  value: selectedStatus,
+                  decoration: const InputDecoration(
+                    labelText: 'Action',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: const [
+                    DropdownMenuItem(
+                      value: 'REJECTED',
+                      child: Text('REJETER (Définitif)'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'RETURNED',
+                      child: Text('RETOURNER (À revoir)'),
+                    ),
+                  ],
+                  onChanged: (value) => selectedStatus = value!,
+                ),
+                const SizedBox(height: 15),
+                _buildDialogTextField(
+                  'Taux humidité (%)',
+                  humitidyController,
+                  isNumber: true,
+                  isRequired: true,
+                ),
+                _buildDialogTextField(
+                  'Observations / Raison',
+                  observationController,
+                  isRequired: true,
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(
+              'Annuler',
+              style: GoogleFonts.poppins(color: Colors.grey),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                final updatedEntity = _currentChargement.copyWith(
+                  destTauxHumidite: num.tryParse(humitidyController.text),
+                  destObservations: observationController.text,
+                );
+
+                Navigator.pop(dialogContext);
+                // 1. Mettre à jour les données (humidité/obs)
+                context.read<LoadingBloc>().add(
+                  UpdateLoadingDetailsEvent(updatedEntity),
+                );
+                // 2. Changer le statut
+                context.read<LoadingBloc>().add(
+                  UpdateLoadingStatusEvent(updatedEntity, selectedStatus),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: Text(
+              'Valider',
               style: GoogleFonts.poppins(color: Colors.white),
             ),
           ),
@@ -376,6 +498,15 @@ class _LoadingDetailViewState extends State<_LoadingDetailView> {
         text: _currentChargement.destPoidsNet?.toString() ?? '',
       ),
       'prixKg': TextEditingController(
+        text: _currentChargement.destPrixKg?.toString() ?? '',
+      ),
+      'tauxDefectueux': TextEditingController(
+        text: _currentChargement.destPrixKg?.toString() ?? '',
+      ),
+      'grainage': TextEditingController(
+        text: _currentChargement.destPrixKg?.toString() ?? '',
+      ),
+      'observations': TextEditingController(
         text: _currentChargement.destPrixKg?.toString() ?? '',
       ),
     };
@@ -440,11 +571,7 @@ class _LoadingDetailViewState extends State<_LoadingDetailView> {
                           controllers['magasin']!,
                           isRequired: true,
                         ),
-                        _buildDialogTextField(
-                          'KOR',
-                          controllers['kor']!,
-                          isRequired: true,
-                        ),
+                        _buildDialogTextField('KOR', controllers['kor']!),
                         _buildDialogTextField(
                           'Sacs déchargés',
                           controllers['sacsDecharges']!,
@@ -483,6 +610,21 @@ class _LoadingDetailViewState extends State<_LoadingDetailView> {
 
                             return null;
                           },
+                        ),
+                        _buildDialogTextField(
+                          'Taux humidité (%)',
+                          controllers['tauxHumidite']!,
+                          isNumber: true,
+                        ),
+                        _buildDialogTextField(
+                          'Taux défectueux (%)',
+                          controllers['tauxDefectueux']!,
+                          isNumber: true,
+                        ),
+                        _buildDialogTextField(
+                          'Grainage',
+                          controllers['grainage']!,
+                          isNumber: true,
                         ),
                         _buildDialogTextField(
                           'Taux humidité (%)',
@@ -542,8 +684,6 @@ class _LoadingDetailViewState extends State<_LoadingDetailView> {
                             return;
                           }
 
-                          log('HEURE ${controllers['heure']!.text}');
-
                           final updatedEntity = _currentChargement.copyWith(
                             destDateDechargement: controllers['date']!.text,
                             destHeure: controllers['heure']!.text.isNotEmpty
@@ -576,6 +716,13 @@ class _LoadingDetailViewState extends State<_LoadingDetailView> {
                             ),
                             destPrixKg: num.tryParse(
                               controllers['prixKg']!.text,
+                            ),
+                            destObservations: controllers['observations']!.text,
+                            destTauxDefectueux: num.tryParse(
+                              controllers['tauxDefectueux']!.text,
+                            ),
+                            destGrainage: num.tryParse(
+                              controllers['grainage']!.text,
                             ),
                           );
 

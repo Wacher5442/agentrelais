@@ -758,7 +758,7 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
                       onChanged: (value) {
                         setState(() {
                           _selectedDepartment = value;
-                          departementController.text = value?['name'] ?? "";
+                          departementController.text = value?['id'] ?? "";
                         });
                         if (value != null)
                           _loadSubPrefectures(value['id'] as String);
@@ -859,7 +859,7 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
                               ),
                               items: _warehouses.map((w) {
                                 return DropdownMenuItem<String>(
-                                  value: w['name'] as String,
+                                  value: w['code'] as String,
                                   child: Text(
                                     w['name'] as String,
                                     overflow: TextOverflow.ellipsis,

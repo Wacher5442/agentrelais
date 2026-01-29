@@ -51,12 +51,24 @@ class StatusHelper {
 
       case 'echec':
       case 'échec':
-      case 'rejected':
-      case 'returned':
         return StatusStyle(
           label: 'Echec',
           backgroundColor: const Color(0xFFFCE8E6),
           textColor: const Color(0xFFD93025),
+        );
+
+      case 'rejected':
+        return StatusStyle(
+          label: 'Rejeté',
+          backgroundColor: const Color(0xFFFCE8E6),
+          textColor: const Color(0xFFD93025),
+        );
+
+      case 'returned':
+        return StatusStyle(
+          label: 'Retourné',
+          backgroundColor: const Color.fromARGB(255, 249, 247, 227),
+          textColor: const Color.fromARGB(255, 231, 204, 3),
         );
 
       case 'en attente':

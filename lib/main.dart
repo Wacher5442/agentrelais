@@ -21,13 +21,14 @@ import 'package:agent_relais/core/utils/ussd_transport.dart';
 import 'package:agent_relais/features/transfert/data/datasources/local/transfert_local_datasource.dart';
 import 'package:agent_relais/features/transfert/presentation/bloc/transfert_submission_bloc.dart';
 import 'package:agent_relais/features/transfert/presentation/pages/confirmation_page.dart';
+import 'package:agent_relais/core/bloc/global_sync/global_sync_bloc.dart';
+import 'package:agent_relais/core/bloc/global_sync/global_sync_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 
 import 'core/constants/route_constants.dart';
-import 'core/di/injection_container.dart';
 import 'core/network/dio_client.dart';
 import 'core/network/network_info_impl.dart';
 import 'features/auth/presentation/pages/login_page.dart';
@@ -116,9 +117,11 @@ void main() async {
   );
 
   // 5. Sync Service (Foreground)
+  final globalSyncBloc = GlobalSyncBloc();
   final syncService = SyncService(
     networkInfo: networkInfo,
     transfertRepository: transfertRepo,
+    globalSyncBloc: globalSyncBloc,
   );
   syncService.initialize();
 
@@ -194,6 +197,7 @@ void main() async {
       homeBloc: homeBloc,
       receiptSubmissionBloc: receiptSubmissionBloc,
       acheteurHomeBloc: acheteurHomeBloc,
+      globalSyncBloc: globalSyncBloc,
     ),
   );
 }
@@ -207,6 +211,7 @@ class MyApp extends StatelessWidget {
   final HomeBloc homeBloc;
   final ReceiptSubmissionBloc receiptSubmissionBloc;
   final AcheteurHomeBloc acheteurHomeBloc;
+  final GlobalSyncBloc globalSyncBloc;
 
   const MyApp({
     Key? key,
@@ -218,6 +223,7 @@ class MyApp extends StatelessWidget {
     required this.homeBloc,
     required this.receiptSubmissionBloc,
     required this.acheteurHomeBloc,
+    required this.globalSyncBloc,
   }) : super(key: key);
 
   @override
@@ -232,6 +238,7 @@ class MyApp extends StatelessWidget {
         BlocProvider.value(value: homeBloc),
         BlocProvider.value(value: receiptSubmissionBloc),
         BlocProvider.value(value: acheteurHomeBloc),
+        BlocProvider.value(value: globalSyncBloc),
       ],
       child: MaterialApp(
         title: 'Agent Relais',
@@ -279,6 +286,79 @@ class MyApp extends StatelessWidget {
 
           // ACHETEUR
           RouteConstants.addReceipt: (context) => const NewRecuPage(),
+        },
+        builder: (context, child) {
+          return Stack(
+            children: [
+              child!,
+              BlocBuilder<GlobalSyncBloc, GlobalSyncState>(
+                builder: (context, state) {
+                  if (state is GlobalSyncInProgress) {
+                    return Material(
+                      type: MaterialType.transparency,
+                      child: Container(
+                        color: Colors.black.withOpacity(0.5),
+                        child: Center(
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 40),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 32,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 20,
+                                  spreadRadius: 5,
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const SizedBox(
+                                  height: 40,
+                                  width: 40,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 3,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Color(0xFF0E8446),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                Text(
+                                  "Synchronisation",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  "Veuillez patienter pendant la mise à jour des données...",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Colors.black54,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
+            ],
+          );
         },
       ),
     );
