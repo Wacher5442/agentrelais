@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -407,7 +409,12 @@ class _LoadingDetailViewState extends State<_LoadingDetailView> {
                           isDate: true,
                           isRequired: true,
                         ),
-                        _buildDialogTextField('Heure', controllers['heure']!),
+                        _buildDialogTextField(
+                          'Heure',
+                          controllers['heure']!,
+                          isTime: true,
+                          isRequired: true,
+                        ),
                         _buildDialogTextField(
                           'Nom exportateur',
                           controllers['exportateur']!,
@@ -443,11 +450,39 @@ class _LoadingDetailViewState extends State<_LoadingDetailView> {
                           controllers['sacsDecharges']!,
                           isNumber: true,
                           isRequired: true,
+                          customValidator: (value) {
+                            final sacsDecharges = num.tryParse(value ?? '');
+                            final sacsCharges = _currentChargement.sacs;
+
+                            if (sacsDecharges == null) return null;
+
+                            if (sacsCharges != null &&
+                                sacsDecharges > sacsCharges) {
+                              return 'Les sacs déchargés ne peuvent pas être inférieurs aux sacs chargés ($sacsCharges)';
+                            }
+                            return null;
+                          },
                         ),
                         _buildDialogTextField(
                           'Sacs remboursés',
                           controllers['sacsRembourses']!,
                           isNumber: true,
+                          customValidator: (value) {
+                            final sacsRembourses = num.tryParse(value ?? '');
+                            final sacsDecharges =
+                                num.tryParse(
+                                  controllers['sacsDecharges']!.text,
+                                ) ??
+                                0;
+
+                            if (sacsRembourses == null) return null;
+
+                            if (sacsDecharges < sacsRembourses) {
+                              return 'Les sacs remboursés ne peuvent pas être supérieurs aux sacs déchargés ($sacsDecharges)';
+                            }
+
+                            return null;
+                          },
                         ),
                         _buildDialogTextField(
                           'Taux humidité (%)',
@@ -506,6 +541,8 @@ class _LoadingDetailViewState extends State<_LoadingDetailView> {
                             );
                             return;
                           }
+
+                          log('HEURE ${controllers['heure']!.text}');
 
                           final updatedEntity = _currentChargement.copyWith(
                             destDateDechargement: controllers['date']!.text,
@@ -575,11 +612,14 @@ class _LoadingDetailViewState extends State<_LoadingDetailView> {
     bool isNumber = false,
     bool isDate = false,
     bool isRequired = false,
+    bool isTime = false,
+    String? Function(String?)? customValidator,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: TextFormField(
         controller: controller,
+        readOnly: isDate || isTime,
         decoration: InputDecoration(
           labelText: isRequired ? '$label *' : label,
           labelStyle: GoogleFonts.poppins(fontSize: 13),
@@ -600,22 +640,49 @@ class _LoadingDetailViewState extends State<_LoadingDetailView> {
               return 'Veuillez entrer un nombre valide';
             }
           }
+          if (customValidator != null) {
+            return customValidator(value);
+          }
           return null;
         },
-        onTap: isDate
-            ? () async {
-                FocusScope.of(context).requestFocus(FocusNode());
-                DateTime? picked = await showDatePicker(
-                  context: context,
-                  firstDate: DateTime(2020),
-                  lastDate: DateTime(2100),
-                  initialDate: DateTime.now(),
+        onTap: () async {
+          FocusScope.of(context).unfocus();
+
+          // Date picker
+          if (isDate) {
+            final picked = await showDatePicker(
+              context: context,
+              firstDate: DateTime(2020),
+              lastDate: DateTime(2100),
+              initialDate: DateTime.now(),
+            );
+            if (picked != null) {
+              controller.text = DateFormat('yyyy-MM-dd').format(picked);
+            }
+          }
+
+          // Time picker
+          if (isTime) {
+            final picked = await showTimePicker(
+              context: context,
+              initialTime: TimeOfDay.now(),
+              builder: (context, child) {
+                return MediaQuery(
+                  data: MediaQuery.of(context).copyWith(
+                    alwaysUse24HourFormat: true, // format 24h
+                  ),
+                  child: child!,
                 );
-                if (picked != null) {
-                  controller.text = DateFormat('yyyy-MM-dd').format(picked);
-                }
-              }
-            : null,
+              },
+            );
+
+            if (picked != null) {
+              final hour = picked.hour.toString().padLeft(2, '0');
+              final minute = picked.minute.toString().padLeft(2, '0');
+              controller.text = '$hour:$minute'; // ex: 08:59
+            }
+          }
+        },
       ),
     );
   }
