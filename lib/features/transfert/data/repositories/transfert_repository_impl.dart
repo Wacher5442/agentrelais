@@ -371,7 +371,7 @@ class TransfertRepositoryImpl implements TransfertRepository {
           );
 
           final receiptPayload = {
-            "form_id": t.formId,
+            "form_id": RECU_FORM_ID,
             "fields": {
               "bundle_id": t.bundleId,
               "numeroRecu": receipt.receiptNumber,

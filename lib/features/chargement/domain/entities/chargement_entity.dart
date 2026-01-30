@@ -52,6 +52,14 @@ class ChargementEntity extends Equatable {
   final num? destTauxDefectueux;
   final num? destGrainage;
   final dynamic destObservations;
+  final dynamic regionLibelle;
+  final dynamic departementLibelle;
+  final dynamic typeTransfertLibelle;
+  final dynamic sousPrefectureLibelle;
+  final dynamic villageLibelle;
+  final dynamic acheteurLibelle;
+  final dynamic campagneLibelle;
+  final dynamic magasinLibelle;
 
   const ChargementEntity({
     required this.numeroFiche,
@@ -103,6 +111,14 @@ class ChargementEntity extends Equatable {
     this.destTauxDefectueux,
     this.destGrainage,
     this.destObservations,
+    this.regionLibelle,
+    this.departementLibelle,
+    this.typeTransfertLibelle,
+    this.sousPrefectureLibelle,
+    this.villageLibelle,
+    this.acheteurLibelle,
+    this.campagneLibelle,
+    this.magasinLibelle,
   });
 
   ChargementEntity copyWith({
@@ -154,6 +170,14 @@ class ChargementEntity extends Equatable {
     dynamic destTauxDefectueux,
     dynamic destGrainage,
     dynamic destObservations,
+    dynamic regionLibelle,
+    dynamic departementLibelle,
+    dynamic typeTransfertLibelle,
+    dynamic sousPrefectureLibelle,
+    dynamic villageLibelle,
+    dynamic acheteurLibelle,
+    dynamic campagneLibelle,
+    dynamic magasinLibelle,
   }) {
     return ChargementEntity(
       numeroFiche: numeroFiche ?? this.numeroFiche,
@@ -208,6 +232,15 @@ class ChargementEntity extends Equatable {
       destTauxDefectueux: destTauxDefectueux ?? this.destTauxDefectueux,
       destGrainage: destGrainage ?? this.destGrainage,
       destObservations: destObservations ?? this.destObservations,
+      regionLibelle: regionLibelle ?? this.regionLibelle,
+      departementLibelle: departementLibelle ?? this.departementLibelle,
+      typeTransfertLibelle: typeTransfertLibelle ?? this.typeTransfertLibelle,
+      sousPrefectureLibelle:
+          sousPrefectureLibelle ?? this.sousPrefectureLibelle,
+      villageLibelle: villageLibelle ?? this.villageLibelle,
+      acheteurLibelle: acheteurLibelle ?? this.acheteurLibelle,
+      campagneLibelle: campagneLibelle ?? this.campagneLibelle,
+      magasinLibelle: magasinLibelle ?? this.magasinLibelle,
     );
   }
 
@@ -232,6 +265,14 @@ class ChargementEntity extends Equatable {
       'dest_taux_defectueux': destTauxDefectueux,
       'dest_grainage': destGrainage,
       'dest_observations': destObservations,
+      'regionLibelle': regionLibelle,
+      'departementLibelle': departementLibelle,
+      'typeTransfertLibelle': typeTransfertLibelle,
+      'sousPrefectureLibelle': sousPrefectureLibelle,
+      'villageLibelle': villageLibelle,
+      'acheteurLibelle': acheteurLibelle,
+      'campagneLibelle': campagneLibelle,
+      'magasinLibelle': magasinLibelle,
     };
   }
 

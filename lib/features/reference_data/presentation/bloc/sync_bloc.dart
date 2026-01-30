@@ -82,6 +82,8 @@ class SyncBloc extends Bloc<SyncEvent, SyncState> {
       'name': user?.placeOfWork ?? "Région Active",
     };
 
+    log("--------------- regionMap $regionMap-----------------");
+
     // On utilise ton localDataSource pour insérer dans SQLite
     await localDataSource.saveBatch('regions', [regionMap]);
     // Récupérer les départements

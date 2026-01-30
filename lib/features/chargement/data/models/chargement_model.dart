@@ -52,6 +52,14 @@ class ChargementModel extends ChargementEntity {
     super.destTauxDefectueux,
     super.destGrainage,
     super.destObservations,
+    super.regionLibelle,
+    super.departementLibelle,
+    super.typeTransfertLibelle,
+    super.sousPrefectureLibelle,
+    super.villageLibelle,
+    super.acheteurLibelle,
+    super.campagneLibelle,
+    super.magasinLibelle,
   });
 
   factory ChargementModel.fromJson(Map<dynamic, dynamic> json) {
@@ -107,6 +115,14 @@ class ChargementModel extends ChargementEntity {
       destTauxDefectueux: json['dest_taux_defectueux'] as num?,
       destGrainage: json['dest_grainage'] as num?,
       destObservations: json['dest_observations'] as dynamic,
+      regionLibelle: json['regionLibelle'] as dynamic,
+      departementLibelle: json['departementLibelle'] as dynamic,
+      typeTransfertLibelle: json['typeTransfertLibelle'] as dynamic,
+      sousPrefectureLibelle: json['sousPrefectureLibelle'] as dynamic,
+      villageLibelle: json['villageLibelle'] as dynamic,
+      acheteurLibelle: json['acheteurLibelle'] as dynamic,
+      campagneLibelle: json['campagneLibelle'] as dynamic,
+      magasinLibelle: json['magasinLibelle'] as dynamic,
     );
   }
 }

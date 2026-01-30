@@ -348,14 +348,32 @@ class _UnloadingDetailViewState extends State<_UnloadingDetailView> {
       title: "Provenance",
       icon: Icons.location_on_outlined,
       children: [
-        if (_currentChargement.region != null)
-          _buildRow("Région :", _currentChargement.region!),
-        if (_currentChargement.departement != null)
-          _buildRow("Département :", _currentChargement.departement!),
-        if (_currentChargement.village != null)
-          _buildRow("Village :", _currentChargement.village!),
-        if (_currentChargement.nomMagasin != null)
-          _buildRow("Magasin provenance :", _currentChargement.nomMagasin!),
+        _currentChargement.regionLibelle != null
+            ? _buildRow("Région :", _currentChargement.regionLibelle!)
+            : _currentChargement.region != null
+            ? _buildRow("Région :", _currentChargement.region!)
+            : const SizedBox.shrink(),
+
+        _currentChargement.departementLibelle != null
+            ? _buildRow("Département :", _currentChargement.departementLibelle!)
+            : _currentChargement.departement != null
+            ? _buildRow("Département :", _currentChargement.departement!)
+            : const SizedBox.shrink(),
+
+        _currentChargement.villageLibelle != null
+            ? _buildRow("Village :", _currentChargement.villageLibelle!)
+            : _currentChargement.village != null
+            ? _buildRow("Village :", _currentChargement.village!)
+            : const SizedBox.shrink(),
+
+        _currentChargement.magasinLibelle != null
+            ? _buildRow(
+                "Magasin provenance :",
+                _currentChargement.magasinLibelle!,
+              )
+            : _currentChargement.nomMagasin != null
+            ? _buildRow("Magasin provenance :", _currentChargement.nomMagasin!)
+            : const SizedBox.shrink(),
       ],
     );
   }

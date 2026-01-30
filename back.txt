@@ -1,0 +1,63 @@
+Je veux des corrections sur cette fonctionnalité :
+- Dans la liste des users, enlève l'admin : is_superuser = true
+- Quand on recupère les users on doit récuperer son profil avec un autre endpoint.
+    - GET /users/{id}/profile
+    Exemple de réponse : 
+    {
+        "id": "string",
+        "matricule": "string",
+        "fullname": "string",
+        "is_active": true,
+        "metadata": {
+            "civility": "",
+            "job_title": "",
+            "place_of_work": ""
+        },
+        "created_at": "2026-01-23T16:02:07.161Z",
+        "updated_at": "2026-01-23T16:02:07.161Z"
+    }
+    
+- Exemple users réponse :
+{
+    "token": {
+        "access_token": "eyJhbGciOiJSUzI1NiIsImtpZCI6InJzYS0yMDI2LTAxIiwidHlwIjoiYXQrand0In0.eyJzdWIiOiIxMTQxMDJOIiwiZXhwIjoxNzY5OTc1MDg1LCJqdGkiOiJlY2VmNzJmMi05ZjU4LTQxNTEtYmU2ZS04MzlmN2ZiM2U2N2EifQ.kuj5DkgbzJJhiQdjbuY-SVdP1pse7dVNuqmKiOlQ96g6fovOcWVtd3kGS_aJ6qbRBkT1cn07p9dvxujvnJ3ols-sszizqL5elEkDncEmHWrC7J8pGnRd0LtX5au63dsc5i8ezXRuSR0bgi_lcBrCf7esUmWQbm-xdkLZPdc7zagHP0AxqI0HwjVxJIugxUmgNcTX_aJ_GBDcSAAz2VG0jn2LNzXKag9RP-Wi3Kq7rU2r_PtAM1Zz_mBKzqi9O9u07qpzCV39CII3ie4l1yAVAyXiwgRdWY7PzWFJ_q8p2xfTqZn3f5EBnkGzyzHjPm6LeTkfuwVXt93XoiO4kI6-A25fKZQn7iit3XimptIC2-qAIGWvbr6YhSPFJLEY2SiF3puEykgjm9XynmNn9B5YaWolRYyW1dvDjYd48hpG091AR4SRUDD1mIm5f5CA3LNR07pN0HJ7SK-UdO2Wg_XHP2auF-1Cv2H0f5NhQiFcWskjoQGpQja7Xp30SoQguEehF4BCFiiBarUfrv3gn6bPkcei51wfU20APzdbRwfihA-uciTDyeAFHKqshU4GRUwQp3sLEuehxxfxWY0w1O5dnylPtQWSrm_BJ_0jwJ98KYQJ1ipIDkZKePNTdeBtxxccKDimmbiAL3Yk9AyrjQgBcXF1J_ZQ83AhfvclT6LeRVw",
+        "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6InJlZnJlc2grand0In0.eyJzdWIiOiIxMTQxMDJOIiwiZXhwIjoxNzcwMzYzODg3LCJqdGkiOiIxZDRlODdmOC1jMDRlLTRlYjUtYjkyMS04NGEwYjFmMDRkM2IifQ.-4zSNa2lVpqR7qvBsI2kDX5oDy42SIusFAmE7AO5428"
+    },
+    "userinfo": {
+        "id": "6973a0f8ecd3005e6554a3b3",
+        "username": "114102N",
+        "is_active": true,
+        "roles": [
+            {
+                "created_at": "2026-01-29T16:21:50.642000",
+                "updated_at": "2026-01-29T16:24:35.032000",
+                "name": "Operateur de saisie",
+                "description": null,
+                "id": "697b891ebca7a22a06305bb5",
+                "slug": "operateur-de-saisie",
+                "permissions": [
+                    "warehouse:can-read-warehouse",
+                    "commodity:can-update-transfer",
+                    "commodity:can-update-receipt",
+                    "commodity:can-read-ref-table-data",
+                    "campaigns:can-read-campaign",
+                    "commodity:can-read-receipt",
+                    "territories:can-read-territory"
+                ]
+            }
+        ],
+        "is_superuser": false,
+        "must_change_password": false,
+        "permissions": [
+            "warehouse:can-read-warehouse",
+            "commodity:can-update-receipt",
+            "commodity:can-update-transfer",
+            "campaigns:can-read-campaign",
+            "territories:can-read-territory",
+            "commodity:can-read-receipt",
+            "commodity:can-read-ref-table-data"
+        ],
+        "created_at": "2026-01-23T16:25:28.427000",
+        "updated_at": "2026-01-30T07:44:47.730216+00:00"
+    }
+}

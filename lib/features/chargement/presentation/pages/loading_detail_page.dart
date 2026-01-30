@@ -501,13 +501,13 @@ class _LoadingDetailViewState extends State<_LoadingDetailView> {
         text: _currentChargement.destPrixKg?.toString() ?? '',
       ),
       'tauxDefectueux': TextEditingController(
-        text: _currentChargement.destPrixKg?.toString() ?? '',
+        text: _currentChargement.destTauxDefectueux?.toString() ?? '',
       ),
       'grainage': TextEditingController(
-        text: _currentChargement.destPrixKg?.toString() ?? '',
+        text: _currentChargement.destGrainage?.toString() ?? '',
       ),
       'observations': TextEditingController(
-        text: _currentChargement.destPrixKg?.toString() ?? '',
+        text: _currentChargement.destObservations?.toString() ?? '',
       ),
     };
 
@@ -626,11 +626,11 @@ class _LoadingDetailViewState extends State<_LoadingDetailView> {
                           controllers['grainage']!,
                           isNumber: true,
                         ),
-                        _buildDialogTextField(
-                          'Taux humidité (%)',
-                          controllers['tauxHumidite']!,
-                          isNumber: true,
-                        ),
+                        // _buildDialogTextField(
+                        //   'Taux humidité (%)',
+                        //   controllers['tauxHumidite']!,
+                        //   isNumber: true,
+                        // ),
                         _buildDialogTextField(
                           'Poids brut (T)',
                           controllers['poidsBrut']!,
@@ -859,14 +859,32 @@ class _LoadingDetailViewState extends State<_LoadingDetailView> {
       title: "Localisation Départ",
       icon: Icons.location_on_outlined,
       children: [
-        if (_currentChargement.region != null)
-          _buildRow("Région :", _currentChargement.region!),
-        if (_currentChargement.departement != null)
-          _buildRow("Département :", _currentChargement.departement!),
-        if (_currentChargement.sousPrefecture != null)
-          _buildRow("Sous-préfecture :", _currentChargement.sousPrefecture!),
-        if (_currentChargement.village != null)
-          _buildRow("Village :", _currentChargement.village!),
+        _currentChargement.regionLibelle != null
+            ? _buildRow("Région :", _currentChargement.regionLibelle!)
+            : _currentChargement.region != null
+            ? _buildRow("Région :", _currentChargement.region!)
+            : const SizedBox.shrink(),
+
+        _currentChargement.departementLibelle != null
+            ? _buildRow("Département :", _currentChargement.departementLibelle!)
+            : _currentChargement.departement != null
+            ? _buildRow("Département :", _currentChargement.departement!)
+            : const SizedBox.shrink(),
+
+        _currentChargement.sousPrefectureLibelle != null
+            ? _buildRow(
+                "Sous-préfecture :",
+                _currentChargement.sousPrefectureLibelle!,
+              )
+            : _currentChargement.sousPrefecture != null
+            ? _buildRow("Sous-préfecture :", _currentChargement.sousPrefecture!)
+            : const SizedBox.shrink(),
+
+        _currentChargement.villageLibelle != null
+            ? _buildRow("Village :", _currentChargement.villageLibelle!)
+            : _currentChargement.village != null
+            ? _buildRow("Village :", _currentChargement.village!)
+            : const SizedBox.shrink(),
       ],
     );
   }
@@ -880,8 +898,11 @@ class _LoadingDetailViewState extends State<_LoadingDetailView> {
           _buildRow("Ville :", _currentChargement.destinationVille!),
         if (_currentChargement.destinateur != null)
           _buildRow("Destinataire :", _currentChargement.destinateur!),
-        if (_currentChargement.nomMagasin != null)
-          _buildRow("Magasin :", _currentChargement.nomMagasin!),
+        _currentChargement.magasinLibelle != null
+            ? _buildRow("Magasin :", _currentChargement.magasinLibelle!)
+            : _currentChargement.nomMagasin != null
+            ? _buildRow("Magasin :", _currentChargement.nomMagasin!)
+            : const SizedBox.shrink(),
       ],
     );
   }
