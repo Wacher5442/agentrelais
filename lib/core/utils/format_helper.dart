@@ -22,7 +22,7 @@ class FormatHelper {
 
     final jour = d.day.toString().padLeft(2, '0');
     final mois = d.month.toString().padLeft(2, '0');
-    final annee = d.year.toString().substring(2); // 2 derniers chiffres
+    final annee = d.year.toString().substring(2);
 
     return "$jour$mois$annee";
   }

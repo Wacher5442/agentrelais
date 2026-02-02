@@ -24,7 +24,6 @@ class RecuCard extends StatelessWidget {
           Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // --- HEADER ---
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -70,7 +69,6 @@ class RecuCard extends StatelessWidget {
 
               const SizedBox(height: 30),
 
-              // --- BODY ---
               Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [

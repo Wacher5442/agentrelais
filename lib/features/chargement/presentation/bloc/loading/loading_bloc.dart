@@ -83,9 +83,6 @@ class LoadingBloc extends Bloc<LoadingEvent, LoadingState> {
     emit(LoadingLoading());
     final result = await updateChargement(event.chargement);
     result.fold((failure) => emit(LoadingError(failure.message)), (_) {
-      // Success message handled by UI listening to stream or rebuilt logic
-      // Ideally we emit LoadingActionSuccess but then we lose list state.
-      // For simplicity we reload. UI should handle transition.
       emit(LoadingActionSuccess("Mise à jour effectuée"));
       add(LoadLoadingsEvent());
     });

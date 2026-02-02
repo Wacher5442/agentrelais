@@ -1,4 +1,4 @@
-import 'package:agent_relais/core/constants/colors.dart';
+import 'package:marakco/core/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -89,7 +89,6 @@ class RecuDetailPage extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // Lieu d’habita
             _SectionCard(
               title: "Lieu d’habitat",
               icon: Icons.location_on_outlined,
@@ -101,7 +100,6 @@ class RecuDetailPage extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // Acheteu
             _SectionCard(
               title: "Acheteur",
               icon: Icons.shopping_bag_outlined,
@@ -118,7 +116,6 @@ class RecuDetailPage extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // Producteu
             _SectionCard(
               title: "Producteur",
               icon: Icons.person_pin_circle_outlined,
@@ -130,7 +127,6 @@ class RecuDetailPage extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // Informations d’acha
             _SectionCard(
               title: "Informations d’achat",
               icon: Icons.science_outlined,
@@ -171,7 +167,6 @@ class RecuDetailPage extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // Photo du reç
             _SectionCard(
               title: "Photo du reçu",
               icon: Icons.photo_outlined,

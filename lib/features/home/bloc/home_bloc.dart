@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:agent_relais/features/transfert/data/datasources/local/transfert_local_datasource.dart';
+import 'package:marakco/features/transfert/data/datasources/local/transfert_local_datasource.dart';
 
 // Events
 abstract class HomeEvent extends Equatable {
@@ -49,11 +49,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   ) async {
     emit(state.copyWith(isLoading: true));
     try {
-      // "Fiches ajoutées" = Total transfers in local DB (or maybe excluding deleted?)
-      // Let's assume all transfers for now.
       final total = await localDataSource.countTransfertsByStatus([]);
 
-      // "Fiches synchronisées" = status 'synchronisé'
       final synced = await localDataSource.countTransfertsByStatus([
         'synchronisé',
       ]);
@@ -66,7 +63,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         ),
       );
     } catch (e) {
-      // Handle error silently or add error state
       emit(state.copyWith(isLoading: false));
     }
   }

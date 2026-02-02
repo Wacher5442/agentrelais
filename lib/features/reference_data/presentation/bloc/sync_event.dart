@@ -8,7 +8,7 @@ abstract class SyncEvent extends Equatable {
 }
 
 class SyncStarted extends SyncEvent {
-  final User? user; // Optional user to get region from
+  final User? user;
 
   const SyncStarted({this.user});
 

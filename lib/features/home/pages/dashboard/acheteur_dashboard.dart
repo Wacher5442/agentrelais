@@ -11,11 +11,13 @@ import '../../widgets/home_card.dart';
 class AcheteurDashboard extends StatelessWidget {
   final String userName;
   final String role;
+  final String location;
 
   const AcheteurDashboard({
     super.key,
     required this.userName,
     required this.role,
+    required this.location,
   });
 
   @override
@@ -29,11 +31,9 @@ class AcheteurDashboard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // En-tête avec les infos utilisateur passées en paramètres
-                HeaderCard(user: userName, subtitle: role),
+                HeaderCard(user: userName, subtitle: role, location: location),
                 const SizedBox(height: 15),
 
-                // Chargements
                 InkWell(
                   onTap: () {
                     Navigator.pushNamed(context, RouteConstants.loadingList);
@@ -69,9 +69,7 @@ class AcheteurDashboard extends StatelessWidget {
                     subtitle: "Liste des déchargements",
                     icon: Icons.download,
                     iconColor: Colors.white,
-                    cardColor: const Color(
-                      0xFFE5BE01,
-                    ), // Gold color probably suitable
+                    cardColor: const Color(0xFFE5BE01),
                     isTrailing: true,
                     titleStyle: GoogleFonts.poppins(
                       fontSize: 14,

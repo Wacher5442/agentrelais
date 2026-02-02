@@ -14,7 +14,7 @@ class TransfertRemoteDataSource {
       log("Submission ID fetching url $filetype");
       final baseUrl =
           dotenv.env['BASE_URL_OBJECT_GATEWAY'] ??
-          'https://maracko-backend.dev.go.incubtek.com/object-gateway/api/presigned/get-upload-url';
+          'https://maracko-backend.cca.go.incubtek.com/object-gateway/api/presigned/get-upload-url';
 
       final resp = await dioClient.post(
         baseUrl,
@@ -36,7 +36,6 @@ class TransfertRemoteDataSource {
     required String url,
     required Map<String, dynamic> payload,
   }) async {
-    // The API expects a PUT request with application/json
     final resp = await dioClient.put(
       url,
       data: payload,
@@ -66,9 +65,8 @@ class TransfertRemoteDataSource {
   void logFormData(FormData formData) {
     log('================ FORM DATA =================');
 
-    // Champs simples
     for (final field in formData.fields) {
-      log('FIELD → ${field.key}: ${field.value}');
+      log('FIELD : ${field.key}: ${field.value}');
     }
 
     log('============== END FORM DATA ==============');

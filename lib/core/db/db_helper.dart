@@ -3,7 +3,7 @@ import 'package:sqflite/sqflite.dart';
 
 class DbHelper {
   static const _dbName = 'agent_app.db';
-  static const _dbVersion = 5; // Incremented for commodities and campaigns
+  static const _dbVersion = 5;
 
   static Database? _database;
   DbHelper._privateConstructor();
@@ -67,9 +67,6 @@ class DbHelper {
       await _createReferenceTables(db);
     }
     if (oldVersion < 4) {
-      // Migration vers numeroFiche comme clé primaire
-      // Pour simplifier, on recrée la table (perte des données existantes)
-      // Dans une vraie app, faire une migration plus complexe
       await db.execute('DROP TABLE IF EXISTS transferts');
       await db.execute('''
         CREATE TABLE transferts (
@@ -136,7 +133,6 @@ class DbHelper {
       )
     ''');
 
-    // Insert default commodity preference
     await db.insert('app_preferences', {
       'key': 'selected_commodity',
       'value': 'ANACARDE',

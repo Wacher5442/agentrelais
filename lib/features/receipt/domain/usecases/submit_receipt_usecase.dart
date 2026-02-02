@@ -1,5 +1,3 @@
-// lib/domain/usecases/submit_receipt_usecase.dart
-
 import '../entities/receipt.dart';
 import '../repositories/receipt_repository.dart';
 
@@ -8,7 +6,6 @@ class SubmitReceiptUseCase {
 
   SubmitReceiptUseCase({required this.repo});
 
-  /// Exécute la soumission d'un reçu
   Future<SubmissionResult> execute({
     required String numeroRecu,
     required String campagne,

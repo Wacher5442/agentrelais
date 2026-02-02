@@ -1,7 +1,5 @@
-// lib/data/models/receipt_model.dart
-
 class ReceiptModel {
-  final String numeroRecu; // ID principal
+  final String numeroRecu;
   final String campagne;
   final String bundleId;
   final String? imagePath;
@@ -117,12 +115,11 @@ class ReceiptModel {
     updatedAt: m['updatedAt'] as int,
   );
 
-  /// Convertit le modèle en JSON pour l'API
   Map<String, dynamic> toApiJson() => {
     'numeroRecu': numeroRecu,
     'campagne': campagne,
     'bundle_id': bundleId,
-    'image': null, // Sera rempli par le datasource
+    'image': null,
     'date': date?.toIso8601String(),
     'departement': departement,
     'typeTransfert': typeTransfert,

@@ -73,7 +73,6 @@ class TransfertSubmissionBloc
         (syncedCount) => emit(TransfertSyncSuccess(syncedCount)),
       );
     } catch (ex) {
-      // Filet de sécurité pour les erreurs non gérées par le UseCase
       emit(TransfertSyncFailure("Erreur inattendue lors de la synchro: $ex"));
     }
   }

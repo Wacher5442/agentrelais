@@ -1,5 +1,3 @@
-// lib/domain/usecases/sync_pending_receipts.dart
-
 import 'package:fpdart/fpdart.dart';
 
 import '../../../../core/errors/failure.dart';
@@ -11,8 +9,6 @@ class SyncPendingReceipts implements UseCase<int, NoParams> {
 
   SyncPendingReceipts(this.repo);
 
-  /// Synchronise tous les reçus en attente
-  /// Retourne le nombre de reçus synchronisés avec succès
   @override
   Future<Either<Failure, int>> call(NoParams params) async {
     try {

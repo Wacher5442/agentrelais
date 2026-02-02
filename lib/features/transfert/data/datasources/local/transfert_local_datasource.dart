@@ -81,7 +81,6 @@ class TransfertLocalDataSourceImpl implements TransfertLocalDataSource {
   @override
   Future<int> countTransfertsByStatus(List<String> statuses) async {
     if (statuses.isEmpty) {
-      // Return total count if no status filter provided
       final result = await dbHelper.query(
         'transferts',
         columns: ['COUNT(*) as count'],

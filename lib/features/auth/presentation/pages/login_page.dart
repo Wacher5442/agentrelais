@@ -1,7 +1,7 @@
 import 'dart:developer';
 
-import 'package:agent_relais/features/auth/presentation/bloc/login_bloc.dart';
-import 'package:agent_relais/core/widgets/custom_snackbar.dart';
+import 'package:marakco/features/auth/presentation/bloc/login_bloc.dart';
+import 'package:marakco/core/widgets/custom_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -26,13 +26,11 @@ class _LoginPageState extends State<LoginPage> {
     text: '',
   );
 
-  // Variables pour les nouveaux champs
   String? selectedUserType;
   String? selectedRegionCode;
 
   final List<String> userTypes = ['Agent', 'Prestataire', 'Acheteur'];
 
-  // Liste des régions au format demandé
   final List<Map<String, String>> regionsList = [
     {"id": "19", "name": "Bafing", "code": "19"},
     {"id": "20", "name": "Bagoué", "code": "20"},
@@ -71,7 +69,6 @@ class _LoginPageState extends State<LoginPage> {
 
   final _formKey = GlobalKey<FormState>();
 
-  // Helper pour le style des Dropdowns pour matcher tes InputFields
   InputDecoration _dropdownDecoration(String label) {
     return InputDecoration(
       labelText: label,
@@ -143,7 +140,6 @@ class _LoginPageState extends State<LoginPage> {
                         key: _formKey,
                         child: Column(
                           children: [
-                            // --- CHAMP TYPE UTILISATEUR ---
                             DropdownButtonFormField<String>(
                               value: selectedUserType,
                               decoration: _dropdownDecoration(
@@ -166,7 +162,6 @@ class _LoginPageState extends State<LoginPage> {
                                   value == null ? "Sélectionnez un type" : null,
                             ),
 
-                            // --- CHAMP RÉGION (Affiché uniquement si Agent) ---
                             if (selectedUserType == 'Agent') ...[
                               SizedBox(height: 24),
                               DropdownButtonFormField<String>(
@@ -250,7 +245,6 @@ class _LoginPageState extends State<LoginPage> {
                                   LoginSubmitted(
                                     username: usernameController.text,
                                     password: passwordController.text,
-                                    // On envoie le code de la région ou vide si pas agent
                                     region: selectedRegionCode ?? "20",
                                   ),
                                 );

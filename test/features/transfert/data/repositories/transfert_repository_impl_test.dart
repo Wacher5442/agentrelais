@@ -4,15 +4,14 @@ import 'package:fpdart/fpdart.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:agent_relais/core/network/network_info.dart';
-import 'package:agent_relais/core/utils/ussd_transport.dart'
-    hide MockUssdTransport;
-import 'package:agent_relais/features/transfert/data/datasources/local/transfert_local_datasource.dart';
-import 'package:agent_relais/features/transfert/data/datasources/remote/transfert_remote_datasource.dart';
-import 'package:agent_relais/features/transfert/data/models/transfert_model.dart';
-import 'package:agent_relais/features/transfert/data/repositories/transfert_repository_impl.dart';
-import 'package:agent_relais/features/transfert/domain/entities/receipt_entity.dart';
-import 'package:agent_relais/features/transfert/domain/entities/transfert_entity.dart';
+import 'package:marakco/core/network/network_info.dart';
+import 'package:marakco/core/utils/ussd_transport.dart' hide MockUssdTransport;
+import 'package:marakco/features/transfert/data/datasources/local/transfert_local_datasource.dart';
+import 'package:marakco/features/transfert/data/datasources/remote/transfert_remote_datasource.dart';
+import 'package:marakco/features/transfert/data/models/transfert_model.dart';
+import 'package:marakco/features/transfert/data/repositories/transfert_repository_impl.dart';
+import 'package:marakco/features/transfert/domain/entities/receipt_entity.dart';
+import 'package:marakco/features/transfert/domain/entities/transfert_entity.dart';
 
 import 'transfert_repository_impl_test.mocks.dart';
 

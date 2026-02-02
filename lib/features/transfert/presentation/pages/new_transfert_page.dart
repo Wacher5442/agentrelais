@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 
-import 'package:agent_relais/core/constants/ussd_constants.dart';
+import 'package:marakco/core/constants/ussd_constants.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -32,10 +32,8 @@ class NewTransfertPage extends StatefulWidget {
 class _NewTransfertPageState extends State<NewTransfertPage> {
   final _formKey = GlobalKey<FormState>();
 
-  // Controllers
   final TextEditingController numeroFicheController = TextEditingController();
   final TextEditingController stickerController = TextEditingController();
-  // ORIGINE DU PRODUIT
   final TextEditingController dateChargementController =
       TextEditingController();
   final TextEditingController regionController = TextEditingController();
@@ -49,14 +47,12 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
   final TextEditingController destinationAcheteurController =
       TextEditingController();
 
-  // INFORMATION SUR L'ACHETEUR
   final TextEditingController nomAcheteurController = TextEditingController();
   final TextEditingController contactAcheteurController =
       TextEditingController();
   final TextEditingController codeAcheteurController = TextEditingController();
   final TextEditingController nomMagasinController = TextEditingController();
 
-  // TRANSPORT
   final TextEditingController denominationController = TextEditingController();
   final TextEditingController thDepartController = TextEditingController();
   final TextEditingController nbreSacsController = TextEditingController();
@@ -84,7 +80,6 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
 
   String _typeTransfert = "ORDINAIRE";
 
-  // Geo Data
   List<Map<String, dynamic>> _warehouses = [];
   List<Map<String, dynamic>> _regions = [];
   List<Map<String, dynamic>> _departments = [];
@@ -125,7 +120,6 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
       );
       setState(() => _regions = items);
 
-      // Attempt to auto-select from LoginBloc Active Region
       final loginState = context.read<LoginBloc>().state;
       if (loginState is LoginSuccess && loginState.activeRegion.isNotEmpty) {
         final activeRegion = loginState.activeRegion;
@@ -264,7 +258,13 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
   Future<void> prendrePhoto() async {
     final XFile? image = await Navigator.push<XFile>(
       context,
-      MaterialPageRoute(builder: (context) => const CustomCameraPage()),
+      MaterialPageRoute(
+        builder: (context) => const CustomCameraPage(
+          rectWidthRatio: 0.85,
+          rectHeightRatio: 0.75,
+          borderRadius: 16,
+        ),
+      ),
     );
 
     if (image != null) {
@@ -292,12 +292,25 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
             children: [
               GestureDetector(
                 onTap: () async {
-                  final img = await picker.pickImage(
-                    source: ImageSource.camera,
+                  final XFile? image = await Navigator.push<XFile>(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const CustomCameraPage(
+                        rectWidthRatio: 0.85,
+                        rectHeightRatio: 0.55,
+                        borderRadius: 16,
+                      ),
+                    ),
                   );
-                  if (img != null) {
-                    setStateDialog(() => tempImage = img);
+                  if (image != null) {
+                    setStateDialog(() => tempImage = image);
                   }
+                  // final img = await picker.pickImage(
+                  //   source: ImageSource.camera,
+                  // );
+                  // if (img != null) {
+                  //   setStateDialog(() => tempImage = img);
+                  // }
                 },
                 child: Container(
                   height: 150,
@@ -362,45 +375,6 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
                 ),
                 keyboardType: TextInputType.number,
               ),
-
-              SizedBox(height: 12),
-
-              // Bouton proéminent pour scanner
-              // OutlinedButton.icon(
-              //   onPressed: () async {
-              //     final scannedNumber = await Navigator.push<String>(
-              //       context,
-              //       MaterialPageRoute(
-              //         fullscreenDialog: true,
-              //         builder: (context) => ReceiptNumberScanner(
-              //           onNumberDetected: (number) {
-              //             Navigator.pop(context, number);
-              //           },
-              //           numberPattern: RegExp(r'\b\d{5,10}\b'),
-              //         ),
-              //       ),
-              //     );
-
-              //     if (scannedNumber != null) {
-              //       setStateDialog(() {
-              //         numberController.text = scannedNumber;
-              //       });
-              //     }
-              //   },
-              //   icon: Padding(
-              //     padding: const EdgeInsets.only(left: 8.0),
-              //     child: Icon(Icons.document_scanner),
-              //   ),
-              //   label: Padding(
-              //     padding: const EdgeInsets.only(right: 8.0),
-              //     child: Text("Scanner le numéro automatiquement"),
-              //   ),
-              //   style: OutlinedButton.styleFrom(
-              //     foregroundColor: primaryColor,
-              //     side: BorderSide(color: primaryColor),
-              //     padding: EdgeInsets.symmetric(vertical: 12),
-              //   ),
-              // ),
             ],
           ),
           actions: [
@@ -445,7 +419,7 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
         ),
       );
       return;
-    } // Extract username and campagne from LoginBloc
+    }
     final loginState = context.read<LoginBloc>().state;
     String username = 'agent_unknown';
     String campagne = '2025-2026';
@@ -707,7 +681,6 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
                               onNumberDetected: (number) {
                                 Navigator.pop(context, number);
                               },
-                              // Pattern pour les numéros de reçu (5 à 10 chiffres)
                               numberPattern: RegExp(r'\b\d{5,10}\b'),
                             ),
                           ),
@@ -1239,7 +1212,7 @@ class _NewTransfertPageState extends State<NewTransfertPage> {
       codeAcheteurController.text = "COOP-882";
       nomMagasinController.text = "MAGASIN CENTRAL B";
 
-      denominationController.text = "CACAO GRADE 1";
+      denominationController.text = "ANACARDE GRADE 1";
       thDepartController.text = "12.5";
       nbreSacsController.text = "1500";
       poidsController.text = "45";

@@ -6,8 +6,12 @@ class FullPageLoader extends StatelessWidget {
 
   const FullPageLoader({
     Key? key,
-    this.backgroundColor =
-        const Color.fromRGBO(0, 0, 0, 0.3), // fond semi-transparent
+    this.backgroundColor = const Color.fromRGBO(
+      0,
+      0,
+      0,
+      0.3,
+    ), // fond semi-transparent
   }) : super(key: key);
 
   @override
@@ -18,9 +22,7 @@ class FullPageLoader extends StatelessWidget {
       child: Center(
         child: Container(
           color: Colors.transparent,
-          child: const Center(
-            child: SpinKitThreeBounce(color: Colors.red),
-          ),
+          child: const Center(child: SpinKitThreeBounce(color: Colors.red)),
         ),
       ),
     );

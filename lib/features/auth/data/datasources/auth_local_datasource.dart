@@ -108,9 +108,7 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   @override
   Future<void> saveCampaigns(List<CampaignModel> campaigns) async {
     final db = await dbHelper.database;
-    // Clear existing campaigns
     await db.delete('campaigns');
-    // Insert new ones
     for (var campaign in campaigns) {
       await db.insert('campaigns', campaign.toMap());
     }
@@ -136,7 +134,6 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
     return CampaignModel.fromMap(rows.first);
   }
 
-  // App Preferences
   @override
   Future<void> saveSelectedCommodity(String commodityCode) async {
     await dbHelper.database;

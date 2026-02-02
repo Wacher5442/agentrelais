@@ -8,7 +8,6 @@ class ReceiptRemoteDataSource {
   final DioClient dioClient;
   ReceiptRemoteDataSource(this.dioClient);
 
-  /// Convertit une image en base64
   Future<String?> _imageToBase64(String? imagePath) async {
     if (imagePath == null || imagePath.isEmpty) return null;
 
@@ -38,12 +37,11 @@ class ReceiptRemoteDataSource {
       imageBase64 = await _imageToBase64(photoPath);
     }
 
-    // Construire le payload selon le format attendu par l'API
     final payload = {
       'numeroRecu': numeroRecu,
       'campagne': campagne,
       'bundle_id': bundleId,
-      'image': imageBase64, // Image en base64
+      'image': imageBase64,
       'date': receiptData['date'],
       'departement': receiptData['departement'],
       'typeTransfert': receiptData['typeTransfert'],

@@ -1,4 +1,3 @@
-// lib/core/tlv/tlv_splitter.dart
 import 'tlv_protocol.dart';
 
 /// Découpe une liste de champs TLV en N parties.

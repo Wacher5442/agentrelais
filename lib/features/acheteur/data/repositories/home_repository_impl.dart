@@ -1,7 +1,7 @@
-import 'package:agent_relais/core/errors/failure.dart';
-import 'package:agent_relais/core/models/recu_model.dart';
-import 'package:agent_relais/features/acheteur/domain/entities/home_stats.dart';
-import 'package:agent_relais/features/acheteur/domain/repositories/i_home_repository.dart';
+import 'package:marakco/core/errors/failure.dart';
+import 'package:marakco/core/models/recu_model.dart';
+import 'package:marakco/features/acheteur/domain/entities/home_stats.dart';
+import 'package:marakco/features/acheteur/domain/repositories/i_home_repository.dart';
 import 'package:fpdart/fpdart.dart';
 
 import '../datasources/home_local_datasource.dart';

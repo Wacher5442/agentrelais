@@ -7,8 +7,14 @@ import '../../../core/constants/route_constants.dart';
 class HeaderCard extends StatelessWidget {
   final String user;
   final String subtitle;
+  final String location;
 
-  const HeaderCard({super.key, required this.user, required this.subtitle});
+  const HeaderCard({
+    super.key,
+    required this.user,
+    required this.subtitle,
+    required this.location,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +69,7 @@ class HeaderCard extends StatelessWidget {
                 Navigator.pushNamed(context, RouteConstants.profil);
               },
               child: Text(
-                "Bouaké",
+                location,
                 style: GoogleFonts.poppins(color: Colors.white),
               ),
             ),

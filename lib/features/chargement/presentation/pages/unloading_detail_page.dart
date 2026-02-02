@@ -34,7 +34,7 @@ class UnloadingDetailPage extends StatelessWidget {
     final dioClient = DioClient(
       baseUrl:
           dotenv.env['BASE_URL_TRANSFERT'] ??
-          'https://maracko-backend.dev.go.incubtek.com/commodities',
+          'https://maracko-backend.cca.go.incubtek.com/commodities',
       accessTokenGetter: authLocalDs.getAccessToken,
     );
     final remoteDataSource = ChargementRemoteDataSource(dioClient);
@@ -193,7 +193,7 @@ class _UnloadingDetailViewState extends State<_UnloadingDetailView> {
               if (_currentChargement.image != null) const SizedBox(height: 16),
               if (_receipts.isNotEmpty || _isLoadingReceipts)
                 _buildReceiptsSection(),
-              const SizedBox(height: 80), // Space for FAB
+              const SizedBox(height: 80),
             ],
           ),
         ),
@@ -554,7 +554,7 @@ class _UnloadingDetailViewState extends State<_UnloadingDetailView> {
           child: ClipRRectImage(
             tag: "fiche-${_currentChargement.numeroFiche}",
             imagePath:
-                "https://s3.dev.go.incubtek.com/proof/${_currentChargement.image}",
+                "https://s3.cca.go.incubtek.com/proof/${_currentChargement.image}",
             borderRadius: 10,
           ),
         ),
@@ -601,7 +601,7 @@ class _UnloadingDetailViewState extends State<_UnloadingDetailView> {
                     child: ClipRRectImage(
                       tag: 'receipt_${receipt.numeroRecu}',
                       imagePath:
-                          "https://s3.dev.go.incubtek.com/proof/${receipt.image}",
+                          "https://s3.cca.go.incubtek.com/proof/${receipt.image}",
                       borderRadius: 10,
                     ),
                   )

@@ -22,7 +22,7 @@ abstract class TransfertRepository {
     required bool forceUssd,
   });
 
-  // Récupérer la liste des transferts (Clean Architecture)
+  // Récupérer la liste des transferts
   Future<Either<Failure, List<TransfertEntity>>> getTransferts();
 
   // Synchroniser les attente

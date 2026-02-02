@@ -1,4 +1,4 @@
-import 'package:agent_relais/core/constants/colors.dart';
+import 'package:marakco/core/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -55,7 +55,6 @@ class StatsCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
 
-          /// --- LINES ---
           ...items.entries.map(
             (entry) => Padding(
               padding: const EdgeInsets.symmetric(vertical: 3),

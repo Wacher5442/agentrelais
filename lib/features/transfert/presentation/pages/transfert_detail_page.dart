@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:agent_relais/core/constants/colors.dart';
+import 'package:marakco/core/constants/colors.dart';
 import '../../../../core/widgets/full_image_widget.dart';
 import '../../domain/entities/transfert_entity.dart';
 
@@ -32,7 +32,6 @@ class TransfertDetailPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header Card
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
@@ -90,7 +89,6 @@ class TransfertDetailPage extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // Informations générales
             if (transfert.date != null || transfert.sticker != null)
               _SectionCard(
                 title: "Informations générales",
@@ -106,7 +104,6 @@ class TransfertDetailPage extends StatelessWidget {
             if (transfert.date != null || transfert.sticker != null)
               const SizedBox(height: 16),
 
-            // Localisation
             _SectionCard(
               title: "Localisation",
               icon: Icons.location_on_outlined,
@@ -123,7 +120,6 @@ class TransfertDetailPage extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // Destination et Acheteur
             _SectionCard(
               title: "Destination et Acheteur",
               icon: Icons.shopping_bag_outlined,
@@ -144,7 +140,6 @@ class TransfertDetailPage extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // Informations de transport
             if (transfert.nomTransporteur != null ||
                 transfert.nomChauffeur != null)
               _SectionCard(
@@ -171,7 +166,6 @@ class TransfertDetailPage extends StatelessWidget {
                 transfert.nomChauffeur != null)
               const SizedBox(height: 16),
 
-            // Détails du chargement
             _SectionCard(
               title: "Détails du chargement",
               icon: Icons.inventory_outlined,
@@ -202,7 +196,6 @@ class TransfertDetailPage extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // Photo de la fiche
             if (transfert.image != null)
               _SectionCard(
                 title: "Photo de la fiche",
@@ -227,7 +220,6 @@ class TransfertDetailPage extends StatelessWidget {
               ),
             if (transfert.image != null) const SizedBox(height: 16),
 
-            // Photos des reçus
             if (transfert.receipts.isNotEmpty)
               _SectionCard(
                 title: "Reçus (${transfert.receipts.length})",
@@ -409,7 +401,6 @@ class _SectionCard extends StatelessWidget {
   }
 }
 
-// Widget helper to display images (local files or network URLs)
 class ClipRRectImage extends StatelessWidget {
   final String imagePath;
   final double borderRadius;

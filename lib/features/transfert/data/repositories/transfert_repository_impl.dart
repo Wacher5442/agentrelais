@@ -27,7 +27,6 @@ class TransfertRepositoryImpl implements TransfertRepository {
   final TlvEncoderType _encoderType = TlvEncoderType.base32;
   final int _ussdLimit = USSD_CHAR_LIMIT;
 
-  // --- CONFIGURATION USSD FIXE (HARDCODED) ---
   // On ne garde que l'essentiel pour l'USSD afin de limiter le nombre de Session
   final List<String> _ussdFieldsWhitelist = [
     'typeTransfert',
@@ -120,13 +119,13 @@ class TransfertRepositoryImpl implements TransfertRepository {
       // 3. Tentative HTTP (si non forcé USSD et internet dispo)
       if (!forceUssd && await networkInfo.isConnected) {
         try {
-          // NEW: Get presigned URL for transfer data
+          // Get presigned URL for transfer data
           final url = await remoteDataSource.getUploadUrl(
             'Fiche de transfert ${transfert.numeroFiche}',
             transfert.username,
           );
 
-          // NEW: Submit transfer data separately
+          // Submit transfer data separately
           final Map<String, dynamic> httpFields = Map.from(fieldsMap);
           httpFields.remove('receipts');
 
@@ -150,7 +149,7 @@ class TransfertRepositoryImpl implements TransfertRepository {
             payload: transferPayload,
           );
 
-          // NEW: Submit each receipt separately
+          // Submit each receipt separately
           for (var receipt in transfert.receipts) {
             String base64Image = "";
 
@@ -225,9 +224,7 @@ class TransfertRepositoryImpl implements TransfertRepository {
           );
         } catch (e) {
           log("Échec HTTP: $e. Basculement USSD.");
-          print(
-            "DEBUG: HTTP Failure: $e",
-          ); // Add print for test output visibility
+          print("DEBUG: HTTP Failure: $e");
         }
       }
 

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:agent_relais/features/home/bloc/home_bloc.dart';
-import 'package:agent_relais/features/transfert/data/datasources/local/transfert_local_datasource.dart';
-import 'package:agent_relais/features/auth/presentation/bloc/login_bloc.dart';
-import 'package:agent_relais/core/db/db_helper.dart';
+import 'package:marakco/features/home/bloc/home_bloc.dart';
+import 'package:marakco/features/transfert/data/datasources/local/transfert_local_datasource.dart';
+import 'package:marakco/features/auth/presentation/bloc/login_bloc.dart';
+import 'package:marakco/core/db/db_helper.dart';
 
 import '../../acheteur/presentation/pages/home_page.dart';
 import 'dashboard/agent_dashboard.dart';
@@ -21,7 +21,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    // Check Auth Status on Init
+
     context.read<LoginBloc>().add(CheckAuthStatus());
   }
 
@@ -66,10 +66,18 @@ class _HomePageState extends State<HomePage> {
       case "Acheteur":
         return AcheteurHomePage();
       case "Prestataire":
-        return PrestataireDashboard(userName: state.user.firstName, role: role);
+        return PrestataireDashboard(
+          userName: state.user.firstName,
+          role: role,
+          location: state.user.placeOfWork ?? "N/A",
+        );
       case "Agent":
       default:
-        return AgentRelaisDashboard(userName: state.user.firstName, role: role);
+        return AgentRelaisDashboard(
+          userName: state.user.firstName,
+          role: role,
+          location: state.user.placeOfWork ?? "N/A",
+        );
     }
   }
 }

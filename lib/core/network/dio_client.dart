@@ -78,6 +78,7 @@ class DioClient {
   }
 
   Future<Response> get(String path, {Map<String, dynamic>? queryParameters}) {
+    log("GET $path");
     return dio.get(path, queryParameters: queryParameters);
   }
 

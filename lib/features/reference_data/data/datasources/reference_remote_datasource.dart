@@ -44,7 +44,7 @@ class ReferenceRemoteDataSource {
     log("--------------- start getWarehouses -----------------");
     final baseUrl =
         dotenv.env['BASE_URL_WAREHOUSES'] ??
-        'https://maracko-backend.dev.go.incubtek.com/warehouses';
+        'https://maracko-backend.cca.go.incubtek.com/warehouses';
     try {
       final response = await dioClient.get(baseUrl);
       log("--------------- response getWarehouses $response-----------------");
@@ -64,7 +64,7 @@ class ReferenceRemoteDataSource {
 
   String get _baseUrl =>
       dotenv.env['BASE_URL_TERRITORIES'] ??
-      'https://maracko-backend.dev.go.incubtek.com/territories/';
+      'https://maracko-backend.cca.go.incubtek.com/territories/';
 
   Future<List<Map<String, dynamic>>> _fetchItems(String url) async {
     try {

@@ -1,0 +1,36 @@
+Dans mon système existant, il faut implémenter une fonctionnalité d'enregistrement des entrepôts offline et synchronisation quand connexion disponible.
+Voici les informations que je veux enregistrer :
+- Nom de l'entrepôt
+- Code de l'entrepôt
+- Description de l'entrepôt
+- Localisation de l'entrepôt
+- Superficie de l'entrepôt
+- Type de l'entrepôt : STANDARD, USINE, EXPORT, ACHAT
+- Statut de l'entrepôt
+- Date de construction de l'entrepôt
+- Utilisateur(connecté) qui a créé l'entrepôt
+- Utilisateur(connecté) qui a modifié l'entrepôt
+- campaign_code : code de la campagne active
+
+Voici le json à poster en cas de connexion : 
+POST : /warehouses
+{
+  "code": "string",
+  "name": "string",
+  "type": "string",
+  "capacity": 0,
+  "occupancy_rate": 0,
+  "locality": "string",
+  "gps_lat": 0,
+  "gps_lon": 0,
+  "construction_date": "2026-02-02",
+  "campaign_code": "string"
+}
+
+- La position doit-être récupérée automatiquement via le gps de l'appareil.
+- Dans le formulaire de création d'une fiche de transfert, le champ Nom magasin crée quick ajout d'un entrepôt s'il n'existe pas dans la liste des entrepôts.
+- Avoir une page pour lister les entrepôts enregistrés et statut synchronisé ou non, en attente, validé, rejeté.
+- Utilise une autre table pour stocker les entrepôts ou si tu utilise la table warehouses, on doit pouvoir différencier les entrepôts créés par l'agent et ceux créés par l'administration déja existant dans le système.
+  parceque les entrepôts crées par l'agent doivent suivre un workflow de validation plus tard.
+
+

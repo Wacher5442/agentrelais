@@ -24,7 +24,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       appBar: AppBar(
         title: const Text("Changement de mot de passe"),
         centerTitle: true,
-        automaticallyImplyLeading: false, // Prevent going back without changing
+        automaticallyImplyLeading: false,
       ),
       body: BlocListener<ChangePasswordBloc, ChangePasswordState>(
         listener: (context, state) {
@@ -52,7 +52,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                 backgroundColor: Colors.green,
               ),
             );
-            // Navigate to Home
+
             Navigator.pushNamedAndRemoveUntil(
               context,
               RouteConstants.home,

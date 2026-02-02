@@ -41,7 +41,6 @@ class ReceiptSubmissionBloc
   Future<void> _onRetry(RetryPendingReceiptsEvent e, Emitter emit) async {
     emit(ReceiptSyncInProgress());
     try {
-      // 1. Vérifier la connexion
       final isOnline = await networkInfo.isConnected;
       if (!isOnline) {
         emit(
@@ -52,10 +51,8 @@ class ReceiptSubmissionBloc
         return;
       }
 
-      // 2. Appeler le use case
       final result = await syncUseCase.call(NoParams());
 
-      // 3. Gérer le résultat
       result.fold(
         (failure) => emit(ReceiptSyncFailure(failure.message)),
         (syncedCount) => emit(ReceiptSyncSuccess(syncedCount)),

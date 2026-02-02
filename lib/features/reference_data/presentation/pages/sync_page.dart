@@ -20,7 +20,6 @@ class _SyncPageState extends State<SyncPage> {
   }
 
   void _checkRoleAndSync() {
-    // Check if user is an agent before syncing
     final loginBloc = context.read<LoginBloc>();
     final loginState = loginBloc.state;
 
@@ -29,7 +28,6 @@ class _SyncPageState extends State<SyncPage> {
           ? loginState.user.roles.first.name
           : '';
 
-      // Only agents should sync, others go directly to home
       if (userRole.toLowerCase() != 'agent') {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           Navigator.pushReplacementNamed(context, RouteConstants.home);
@@ -38,7 +36,6 @@ class _SyncPageState extends State<SyncPage> {
       }
     }
 
-    // Start sync for agents
     context.read<SyncBloc>().add(const SyncStarted());
   }
 
@@ -60,9 +57,7 @@ class _SyncPageState extends State<SyncPage> {
             message = state.message;
             progress = state.progress;
           } else if (state is SyncFailure) {
-            bool isNoInternet = state.message.contains(
-              "connexion",
-            ); // Détection simple
+            bool isNoInternet = state.message.contains("connexion");
 
             return Center(
               child: Padding(

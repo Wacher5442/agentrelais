@@ -31,7 +31,7 @@ class LoadingListPage extends StatelessWidget {
     final dioClient = DioClient(
       baseUrl:
           dotenv.env['BASE_URL_TRANSFERT'] ??
-          'https://maracko-backend.dev.go.incubtek.com/commodities',
+          'https://maracko-backend.cca.go.incubtek.com/commodities',
       accessTokenGetter: authLocalDs.getAccessToken,
     );
     final remoteDataSource = ChargementRemoteDataSource(dioClient);

@@ -1,4 +1,3 @@
-/// Une entité simple pour contenir les statistiques de la page d'accueil.
 class HomeStats {
   final int valides;
   final int enAttente;

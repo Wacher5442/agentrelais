@@ -1,9 +1,7 @@
-// lib/domain/entities/receipt.dart
-
 class ReceiptEntity {
-  final String numeroRecu; // ID principal
+  final String numeroRecu;
   final String campagne;
-  final Map<String, dynamic> fields; // Tous les champs du reçu
+  final Map<String, dynamic> fields;
   final String? photoPath;
   final String agentId;
   final String? status;

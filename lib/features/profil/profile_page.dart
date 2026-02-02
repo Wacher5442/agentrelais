@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -9,7 +7,7 @@ import '../../core/widgets/button_widget.dart';
 import '../home/bloc/home_bloc.dart';
 import 'widgets/profile_header_card.dart';
 import 'widgets/stats_card.dart';
-import 'package:agent_relais/features/auth/presentation/bloc/login_bloc.dart';
+import 'package:marakco/features/auth/presentation/bloc/login_bloc.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -22,7 +20,6 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    // On rafraîchit les stats au chargement de la page
     context.read<HomeBloc>().add(LoadHomeStats());
   }
 
@@ -54,9 +51,9 @@ class _ProfilePageState extends State<ProfilePage> {
               code = loginState.user.agentCode ?? "N/A";
               role = loginState.user.roles.first.name ?? "agent";
               campagne = loginState.campagne;
+              location = loginState.user.placeOfWork ?? "N/A";
             }
 
-            // On imbrique le HomeBloc pour récupérer les stats
             return BlocBuilder<HomeBloc, HomeState>(
               builder: (context, homeState) {
                 return SingleChildScrollView(
@@ -83,7 +80,6 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       const SizedBox(height: 20),
 
-                      // Affichage dynamique des stats selon le rôle
                       if (role.toLowerCase() == "agent")
                         StatsCard(
                           icon: Icons.emoji_events_outlined,
@@ -119,10 +115,60 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       const SizedBox(height: 20),
 
-                      // Section Commodité (si applicable)
                       if (loginState is LoginSuccess &&
                           loginState.commodities.isNotEmpty) ...[
-                        // ... (ton code de dropdown reste identique)
+                        Text(
+                          "Commodité",
+
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+
+                            fontSize: 16,
+                          ),
+                        ),
+
+                        const SizedBox(height: 10),
+
+                        DropdownButtonFormField<String>(
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.grey[100],
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+
+                          value:
+                              loginState.commodities.any(
+                                (c) => loginState.campagne.contains(c.code),
+                              )
+                              ? loginState.commodities
+                                    .firstWhere(
+                                      (c) =>
+                                          loginState.campagne.contains(c.code),
+                                    )
+                                    .code
+                              : null,
+
+                          items: loginState.commodities.map((c) {
+                            return DropdownMenuItem(
+                              value: c.code,
+
+                              child: Text(c.name, style: GoogleFonts.poppins()),
+                            );
+                          }).toList(),
+
+                          onChanged: (val) {
+                            if (val != null) {
+                              context.read<LoginBloc>().add(
+                                CommodityChanged(val),
+                              );
+                            }
+                          },
+                        ),
+
+                        const SizedBox(height: 20),
                       ],
 
                       const SizedBox(height: 40),

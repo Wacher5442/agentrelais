@@ -86,7 +86,6 @@ class ChargementCard extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        // Assuming simple display or formatting if helper available
                         chargement.poids != null
                             ? '${chargement.poids} T'
                             : '-',

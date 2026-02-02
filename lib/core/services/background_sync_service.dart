@@ -1,7 +1,5 @@
 import 'dart:developer';
 
-import 'package:agent_relais/core/constants/ussd_constants.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:workmanager/workmanager.dart';
@@ -19,7 +17,7 @@ import '../network/network_info_impl.dart';
 import '../utils/ussd_transport.dart';
 
 const simplePeriodicTask = "simplePeriodicTask";
-const syncTaskKey = "com.agent_relais.syncTask";
+const syncTaskKey = "com.marakco.syncTask";
 
 @pragma('vm:entry-point')
 void callbackDispatcher() {
@@ -35,9 +33,9 @@ void callbackDispatcher() {
           dbHelper,
         );
         final dioClient = DioClient(
-          baseUrl: 'https://maracko-backend.dev.go.incubtek.com',
+          baseUrl: 'https://maracko-backend.cca.go.incubtek.com',
           accessTokenGetter: authLocalDs.getAccessToken,
-        ); // Use env var in real app
+        );
         final networkInfo = NetworkInfoImpl(InternetConnection());
         final ussdTransport = MockUssdTransport();
 

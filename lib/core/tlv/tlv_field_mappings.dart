@@ -5,7 +5,6 @@ import 'dart:typed_data';
 import 'tlv_protocol.dart';
 
 class TlvFieldMappings {
-  // --- TAGS EXISTANTS & NOUVEAUX ---
   static const int numeroFiche = 1;
   static const int date = 2;
   static const int typeTransfert = 3;
@@ -18,7 +17,6 @@ class TlvFieldMappings {
   static const int prix = 10;
   static const int remorque = 11;
 
-  // Nouveaux champs ajoutés
   static const int region = 12;
   static const int departement = 13;
   static const int village = 14;
@@ -140,6 +138,6 @@ class TlvFieldMappings {
       log("Erreur formatage date USSD: $e");
     }
 
-    return dateStr; // Retourne tel quel si le format est inconnu
+    return dateStr;
   }
 }

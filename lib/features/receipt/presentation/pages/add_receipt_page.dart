@@ -98,16 +98,13 @@ class _NewRecuPageState extends State<NewRecuPage> {
   }
 
   void enregistrer() {
-    // 1. Valider le formulaire
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    // 2. Créer le DTO
     final formData = ReceiptFormData()
       ..numeroRecu = numeroRecuController.text
-      ..campagne =
-          '2025-2026' // Campagne par défaut
+      ..campagne = '2025-2026'
       ..departement = departement
       ..sousPrefecture = sousPrefecture
       ..village = villageController.text
@@ -127,7 +124,6 @@ class _NewRecuPageState extends State<NewRecuPage> {
       ..photoPath = photoRecu?.path
       ..agentId = 'AGENT_007';
 
-    // 3. Envoyer l'événement au BLoC
     context.read<ReceiptSubmissionBloc>().add(SubmitReceiptEvent(formData));
   }
 
@@ -185,7 +181,6 @@ class _NewRecuPageState extends State<NewRecuPage> {
               ),
             );
 
-            // Navigation après succès
             Navigator.pushNamedAndRemoveUntil(
               context,
               RouteConstants.confirmation,

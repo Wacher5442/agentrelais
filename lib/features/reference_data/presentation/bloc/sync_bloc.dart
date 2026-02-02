@@ -2,7 +2,7 @@ import 'dart:developer';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:agent_relais/features/auth/domain/entities/user_entity.dart';
+import 'package:marakco/features/auth/domain/entities/user_entity.dart';
 
 import '../../../../core/network/network_info.dart';
 import '../../../auth/data/datasources/auth_local_datasource.dart';

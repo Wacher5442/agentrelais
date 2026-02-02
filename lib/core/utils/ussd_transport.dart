@@ -1,10 +1,9 @@
-// lib/core/transport/ussd_transport.dart
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:math' hide log;
 import 'package:http/http.dart' as http;
-import 'package:agent_relais/core/services/ussd_service.dart';
+import 'package:marakco/core/services/ussd_service.dart';
 
 import '../constants/ussd_constants.dart';
 
@@ -34,7 +33,7 @@ class MockUssdTransport implements UssdTransport {
 
   //     await Future.delayed(delay);
   //     final baseUrl =
-  //         'https://maracko-backend.dev.go.incubtek.com/object-gateway/api/ussd/callback/orange';
+  //         'https://maracko-backend.cca.go.incubtek.com/object-gateway/api/ussd/callback/orange';
 
   //     final random = Random();
   //     final sessionId = 10000000 + random.nextInt(90000000);

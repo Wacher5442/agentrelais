@@ -1,4 +1,4 @@
-import 'package:agent_relais/core/constants/colors.dart';
+import 'package:marakco/core/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -9,7 +9,7 @@ import '../../domain/entities/home_stats.dart';
 import '../bloc/acheteur_home_bloc.dart';
 import '../widgets/header_card.dart';
 import '../widgets/home_card.dart';
-import '../widgets/status_card.dart'; // Importez le BLoC
+import '../widgets/status_card.dart';
 
 class AcheteurHomePage extends StatefulWidget {
   const AcheteurHomePage({super.key});
@@ -22,7 +22,6 @@ class _AcheteurHomePageState extends State<AcheteurHomePage> {
   final TextEditingController searchController = TextEditingController();
   String? selectedValue;
 
-  // Modifié pour utiliser de vrais statuts pour le filtre
   final List<String> items = [
     "Tous les statuts",
     "Validé",
@@ -33,7 +32,6 @@ class _AcheteurHomePageState extends State<AcheteurHomePage> {
   @override
   void initState() {
     super.initState();
-    // Déclenche le premier chargement des données
     context.read<AcheteurHomeBloc>().add(const AcheteurHomeDataFetched());
   }
 
@@ -77,18 +75,16 @@ class _AcheteurHomePageState extends State<AcheteurHomePage> {
                     state.homeData.receipts,
                   );
                 }
-                // Initial ou autres états
+
                 return const Center(child: Text("Chargement des données..."));
               },
             ),
-            // ---- Fin du contenu BLoC ----
           ],
         ),
       ),
     );
   }
 
-  /// Widget pour afficher le contenu une fois chargé
   Widget _buildHomeContent(HomeStats stats, List<Recu> receipts) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,28 +103,28 @@ class _AcheteurHomePageState extends State<AcheteurHomePage> {
                   icon: Icons.check_circle,
                   label: "Reçus",
                   color: Color(0xFF5D8BCC),
-                  value: stats.valides, // Données du BLoC
+                  value: stats.valides,
                   width: itemWidth,
                 ),
                 StatusCard(
                   icon: Icons.timelapse_sharp,
                   label: "Magasins",
                   color: secondaryColor,
-                  value: stats.enAttente, // Données du BLoC
+                  value: stats.enAttente,
                   width: itemWidth,
                 ),
                 StatusCard(
                   icon: Icons.cancel,
                   label: "Pisteurs",
                   color: Color(0xFF058B65),
-                  value: stats.reclassifyes, // Données du BLoC
+                  value: stats.reclassifyes,
                   width: itemWidth,
                 ),
                 StatusCard(
                   icon: Icons.track_changes,
                   label: "Transferts",
                   color: Color(0xFFBA28D7),
-                  value: stats.reclassifyes, // Données du BLoC
+                  value: stats.reclassifyes,
                   width: itemWidth,
                 ),
               ],

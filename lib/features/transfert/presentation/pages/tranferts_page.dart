@@ -22,9 +22,8 @@ class _TranfertsPageState extends State<TranfertsPage> {
   @override
   void initState() {
     super.initState();
-    // Initialize filter from parameter if provided
     selectedStatus = widget.initialStatusFilter;
-    // Load transfers list
+    // Load transers list
     context.read<TransfertListBloc>().add(LoadTransfertsEvent());
   }
 
@@ -54,7 +53,6 @@ class _TranfertsPageState extends State<TranfertsPage> {
       ),
       body: Column(
         children: [
-          // Filtres
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 19, vertical: 10),
             child: Row(
@@ -86,7 +84,6 @@ class _TranfertsPageState extends State<TranfertsPage> {
             ),
           ),
 
-          // Liste avec BLoC
           Expanded(
             child: BlocBuilder<TransfertListBloc, TransfertListState>(
               builder: (context, state) {
@@ -104,7 +101,6 @@ class _TranfertsPageState extends State<TranfertsPage> {
                 }
 
                 if (state is TransfertListLoaded) {
-                  // Filtrage coté UI
                   final filteredList = state.transferts.where((t) {
                     final matchesType =
                         selectedType == null || t.typeTransfert == selectedType;

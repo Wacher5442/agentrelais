@@ -1,7 +1,5 @@
 import 'package:equatable/equatable.dart';
 
-/// Classe abstraite pour les échecs (erreurs) dans l'application.
-/// L'utilisation d'Equatable permet des comparaisons faciles.
 abstract class Failure extends Equatable {
   final String message;
   const Failure(this.message);

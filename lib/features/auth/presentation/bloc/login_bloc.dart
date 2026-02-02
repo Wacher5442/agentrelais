@@ -46,7 +46,6 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         }
       });
 
-      // Refresh state with new campaign
       emit(
         LoginSuccess(
           user: currentState.user,
@@ -86,19 +85,19 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         log("--------------- save region ok -----------------");
         // --- Dynamic Data Sync ---
         // Fetch commodities and open campaigns
-        // final commoditiesResult = await loginUseCase.repository
-        //     .fetchAndStoreCommodities();
-        // await loginUseCase.repository.fetchAndStoreOpenCampaigns();
+        final commoditiesResult = await loginUseCase.repository
+            .fetchAndStoreCommodities();
+        await loginUseCase.repository.fetchAndStoreOpenCampaigns();
 
         log("--------------- fetch commodities ok -----------------");
 
-        // List<CommodityEntity> commodities = [];
-        // commoditiesResult.fold((f) => null, (list) => commodities = list);
+        List<CommodityEntity> commodities = [];
+        commoditiesResult.fold((f) => null, (list) => commodities = list);
 
         // Resolve active campaign based on selected commodity (default: ANACARDE)
         final campaignResult = await loginUseCase.repository
             .getActiveCampaign();
-        String campagne = '2025-2026'; // Default fallback
+        String campagne = '2025-2026';
 
         log("--------------- campaignResult ok -----------------");
 
@@ -117,7 +116,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
             user: user,
             activeRegion: activeRegion ?? '',
             campagne: campagne,
-            // commodities: commodities,
+            commodities: commodities,
           ),
         );
       },
@@ -135,12 +134,12 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
             .getActiveRegion();
 
         // Ensure dynamic data is synced
-        // final commoditiesResult = await checkAuthUseCase.repository
-        //     .fetchAndStoreCommodities();
-        // await checkAuthUseCase.repository.fetchAndStoreOpenCampaigns();
+        final commoditiesResult = await checkAuthUseCase.repository
+            .fetchAndStoreCommodities();
+        await checkAuthUseCase.repository.fetchAndStoreOpenCampaigns();
 
-        // List<CommodityEntity> commodities = [];
-        // commoditiesResult.fold((f) => null, (list) => commodities = list);
+        List<CommodityEntity> commodities = [];
+        commoditiesResult.fold((f) => null, (list) => commodities = list);
 
         // Resolve active campaign
         final campaignResult = await checkAuthUseCase.repository
@@ -158,7 +157,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
             user: user,
             activeRegion: activeRegion ?? user.placeOfWork ?? '',
             campagne: campagne,
-            // commodities: commodities,
+            commodities: commodities,
           ),
         );
       } else {

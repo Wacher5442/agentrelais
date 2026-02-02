@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/constants/colors.dart';
 import '../../../../core/constants/route_constants.dart';
-import '../../../auth/domain/entities/user_entity.dart';
 import '../../bloc/home_bloc.dart';
 import '../../widgets/header_card.dart';
 import '../../widgets/home_card.dart';
@@ -12,11 +11,13 @@ import '../../widgets/home_card.dart';
 class AgentRelaisDashboard extends StatelessWidget {
   final String userName;
   final String role;
+  final String location;
 
   const AgentRelaisDashboard({
     super.key,
     required this.userName,
     required this.role,
+    required this.location,
   });
 
   @override
@@ -30,14 +31,11 @@ class AgentRelaisDashboard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // En-tête avec les infos utilisateur passées en paramètres
-                HeaderCard(user: userName, subtitle: role),
+                HeaderCard(user: userName, subtitle: role, location: location),
                 const SizedBox(height: 15),
 
-                // Statistiques de base - Clickable
                 InkWell(
                   onTap: () async {
-                    // Navigate to all fiches (no filter)
                     await Navigator.pushNamed(
                       context,
                       RouteConstants.transfert,
@@ -56,7 +54,6 @@ class AgentRelaisDashboard extends StatelessWidget {
                 const SizedBox(height: 15),
                 InkWell(
                   onTap: () async {
-                    // Navigate to synchronized fiches only
                     await Navigator.pushNamed(
                       context,
                       RouteConstants.transfert,
@@ -83,7 +80,6 @@ class AgentRelaisDashboard extends StatelessWidget {
                 ),
                 const SizedBox(height: 15),
 
-                // Bouton Demandes de transfert
                 InkWell(
                   onTap: () async {
                     await Navigator.pushNamed(
@@ -99,8 +95,7 @@ class AgentRelaisDashboard extends StatelessWidget {
                     subtitle: "Vérifier les fiches de transfert",
                     icon: Icons.receipt_long_rounded,
                     iconColor: Colors.white,
-                    cardColor:
-                        primaryColor, // Assurez-vous que primaryColor est accessible
+                    cardColor: primaryColor,
                     isTrailing: true,
                     titleStyle: GoogleFonts.poppins(
                       fontSize: 14,
@@ -116,7 +111,6 @@ class AgentRelaisDashboard extends StatelessWidget {
                 ),
                 const SizedBox(height: 15),
 
-                // Bouton Déclaration d'entrepôts
                 InkWell(
                   onTap: () {
                     // Action future ici
@@ -126,8 +120,7 @@ class AgentRelaisDashboard extends StatelessWidget {
                     subtitle: "Valider les entrepôts",
                     icon: Icons.storefront_outlined,
                     iconColor: Colors.white,
-                    cardColor:
-                        redColor, // Assurez-vous que redColor est accessible
+                    cardColor: redColor,
                     isTrailing: true,
                     titleStyle: GoogleFonts.poppins(
                       fontSize: 14,
@@ -143,7 +136,6 @@ class AgentRelaisDashboard extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
 
-                // Historique
                 HomeCards(
                   title: "Historique des validations",
                   subtitle: "Consulter l'historique",

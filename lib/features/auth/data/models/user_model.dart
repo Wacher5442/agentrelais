@@ -15,10 +15,8 @@ class UserModel extends User {
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
-    // metadata_ is used in profile response, metadata in some other responses
     final metadata = json['metadata_'] ?? json['metadata'] ?? {};
 
-    // For names, we prefer first_name/last_name but can try to split fullname if present
     String firstName = json['first_name'] ?? '';
     String lastName = json['last_name'] ?? '';
     if (firstName.isEmpty && lastName.isEmpty && json['fullname'] != null) {

@@ -1,28 +1,28 @@
-import 'package:agent_relais/features/acheteur/data/datasources/home_local_datasource.dart';
-import 'package:agent_relais/features/acheteur/data/repositories/home_repository_impl.dart';
-import 'package:agent_relais/features/acheteur/domain/usecases/get_home_data_usecase.dart';
-import 'package:agent_relais/features/acheteur/presentation/bloc/acheteur_home_bloc.dart';
-import 'package:agent_relais/features/auth/presentation/bloc/login_bloc.dart';
-import 'package:agent_relais/features/receipt/data/datasources/local/receipt_local_datasource.dart';
-import 'package:agent_relais/features/receipt/data/datasources/remote/receipt_remote_datasource.dart';
-import 'package:agent_relais/features/receipt/domain/usecases/submit_receipt_usecase.dart';
-import 'package:agent_relais/features/receipt/domain/usecases/sync_pending_receipts.dart';
-import 'package:agent_relais/features/receipt/presentation/bloc/receipt_submission_bloc.dart';
-import 'package:agent_relais/features/receipt/presentation/pages/add_receipt_page.dart';
-import 'package:agent_relais/features/reference_data/data/datasources/reference_local_datasource.dart';
-import 'package:agent_relais/features/reference_data/data/datasources/reference_remote_datasource.dart';
-import 'package:agent_relais/features/reference_data/presentation/bloc/sync_bloc.dart';
-import 'package:agent_relais/features/reference_data/presentation/pages/sync_page.dart';
+import 'package:marakco/features/acheteur/data/datasources/home_local_datasource.dart';
+import 'package:marakco/features/acheteur/data/repositories/home_repository_impl.dart';
+import 'package:marakco/features/acheteur/domain/usecases/get_home_data_usecase.dart';
+import 'package:marakco/features/acheteur/presentation/bloc/acheteur_home_bloc.dart';
+import 'package:marakco/features/auth/presentation/bloc/login_bloc.dart';
+import 'package:marakco/features/receipt/data/datasources/local/receipt_local_datasource.dart';
+import 'package:marakco/features/receipt/data/datasources/remote/receipt_remote_datasource.dart';
+import 'package:marakco/features/receipt/domain/usecases/submit_receipt_usecase.dart';
+import 'package:marakco/features/receipt/domain/usecases/sync_pending_receipts.dart';
+import 'package:marakco/features/receipt/presentation/bloc/receipt_submission_bloc.dart';
+import 'package:marakco/features/receipt/presentation/pages/add_receipt_page.dart';
+import 'package:marakco/features/reference_data/data/datasources/reference_local_datasource.dart';
+import 'package:marakco/features/reference_data/data/datasources/reference_remote_datasource.dart';
+import 'package:marakco/features/reference_data/presentation/bloc/sync_bloc.dart';
+import 'package:marakco/features/reference_data/presentation/pages/sync_page.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:agent_relais/core/db/db_helper.dart';
-import 'package:agent_relais/core/services/background_sync_service.dart';
-import 'package:agent_relais/core/services/sync_service.dart';
-import 'package:agent_relais/core/utils/ussd_transport.dart';
-import 'package:agent_relais/features/transfert/data/datasources/local/transfert_local_datasource.dart';
-import 'package:agent_relais/features/transfert/presentation/bloc/transfert_submission_bloc.dart';
-import 'package:agent_relais/features/transfert/presentation/pages/confirmation_page.dart';
-import 'package:agent_relais/core/bloc/global_sync/global_sync_bloc.dart';
-import 'package:agent_relais/core/bloc/global_sync/global_sync_state.dart';
+import 'package:marakco/core/db/db_helper.dart';
+import 'package:marakco/core/services/background_sync_service.dart';
+import 'package:marakco/core/services/sync_service.dart';
+import 'package:marakco/core/utils/ussd_transport.dart';
+import 'package:marakco/features/transfert/data/datasources/local/transfert_local_datasource.dart';
+import 'package:marakco/features/transfert/presentation/bloc/transfert_submission_bloc.dart';
+import 'package:marakco/features/transfert/presentation/pages/confirmation_page.dart';
+import 'package:marakco/core/bloc/global_sync/global_sync_bloc.dart';
+import 'package:marakco/core/bloc/global_sync/global_sync_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -47,12 +47,12 @@ import 'features/transfert/presentation/pages/new_transfert_page.dart';
 import 'features/transfert/presentation/pages/tranferts_page.dart';
 import 'features/transfert/presentation/pages/transfert_detail_page.dart';
 import 'features/transfert/domain/entities/transfert_entity.dart';
-import 'package:agent_relais/features/auth/data/datasources/auth_local_datasource.dart';
-import 'package:agent_relais/features/auth/data/datasources/auth_remote_datasource.dart';
-import 'package:agent_relais/features/auth/data/repositories/auth_repository_impl.dart';
-import 'package:agent_relais/features/auth/domain/usecases/login_usecase.dart';
-import 'package:agent_relais/features/auth/domain/usecases/logout_usecase.dart';
-import 'package:agent_relais/features/auth/domain/usecases/check_auth_usecase.dart';
+import 'package:marakco/features/auth/data/datasources/auth_local_datasource.dart';
+import 'package:marakco/features/auth/data/datasources/auth_remote_datasource.dart';
+import 'package:marakco/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:marakco/features/auth/domain/usecases/login_usecase.dart';
+import 'package:marakco/features/auth/domain/usecases/logout_usecase.dart';
+import 'package:marakco/features/auth/domain/usecases/check_auth_usecase.dart';
 
 import 'features/auth/domain/usecases/change_password_usecase.dart';
 import 'features/auth/presentation/bloc/change_password_bloc.dart';
@@ -83,15 +83,14 @@ void main() async {
 
   final dioClient = DioClient(
     baseUrl:
-        dotenv.env['BASE_URL_AUTH'] ??
-        'https://maracko-backend.dev.go.incubtek.com/auth/',
+        dotenv.env['BASE_URL'] ?? 'https://maracko-backend.cca.go.incubtek.com',
     accessTokenGetter: authLocalDs.getAccessToken,
   );
 
   final networkInfo = NetworkInfoImpl(InternetConnection());
   final ussdTransport = MockUssdTransport();
 
-  // 3. Datasources (continued)
+  // 3. Datasources
   final transfertRemoteDs = TransfertRemoteDataSource(dioClient);
   final transfertLocalDs = TransfertLocalDataSourceImpl(dbHelper);
   var authRemoteDs = AuthRemoteDataSourceImpl(dioClient);
@@ -284,7 +283,6 @@ class MyApp extends StatelessWidget {
             return TransfertDetailPage(transfert: args);
           },
 
-          // ACHETEUR
           RouteConstants.addReceipt: (context) => const NewRecuPage(),
         },
         builder: (context, child) {

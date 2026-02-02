@@ -6,7 +6,6 @@ import 'package:camera/camera.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-/// Widget de scan OCR pour capturer le numéro de reçu
 class ReceiptNumberScanner extends StatefulWidget {
   final Function(String) onNumberDetected;
   final RegExp? numberPattern;
@@ -33,7 +32,6 @@ class _ReceiptNumberScannerState extends State<ReceiptNumberScanner> {
   @override
   void initState() {
     super.initState();
-    // Pattern par défaut : 5 à 10 chiffres consécutifs
     _pattern = widget.numberPattern ?? RegExp(r'\b\d{5,10}\b');
     _initializeCamera();
   }

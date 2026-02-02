@@ -21,7 +21,7 @@ class InjectionContainer {
   late AuthLocalDataSourceImpl authLocalDataSource;
 
   Future<void> init() async {
-    // 1. Initialisations de base (Vital pour l'isolate de fond)
+    // 1. Initialisations de base
     WidgetsFlutterBinding.ensureInitialized();
     await dotenv.load(fileName: ".env");
 
@@ -35,7 +35,7 @@ class InjectionContainer {
     final dioClient = DioClient(
       baseUrl:
           dotenv.env['BASE_URL'] ??
-          'https://maracko-backend.dev.go.incubtek.com',
+          'https://maracko-backend.cca.go.incubtek.com',
       accessTokenGetter: authLocalDataSource.getAccessToken,
     );
 

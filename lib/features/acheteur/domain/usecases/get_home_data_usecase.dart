@@ -6,7 +6,6 @@ import '../../../../../core/utils/usecase.dart';
 import '../entities/home_stats.dart';
 import '../repositories/i_home_repository.dart';
 
-/// Usecase combiné pour charger toutes les données de la page d'accueil
 class GetHomeDataUseCase implements UseCase<HomeData, HomeDataParams> {
   final IHomeRepository repository;
 

@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/constants/colors.dart';
 import '../../../../core/constants/route_constants.dart';
-import '../../../auth/domain/entities/user_entity.dart';
 import '../../bloc/home_bloc.dart';
 import '../../widgets/header_card.dart';
 import '../../widgets/home_card.dart';
@@ -12,11 +11,13 @@ import '../../widgets/home_card.dart';
 class PrestataireDashboard extends StatelessWidget {
   final String userName;
   final String role;
+  final String location;
 
   const PrestataireDashboard({
     super.key,
     required this.userName,
     required this.role,
+    required this.location,
   });
 
   @override
@@ -30,11 +31,9 @@ class PrestataireDashboard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // En-tête avec les infos utilisateur passées en paramètres
-                HeaderCard(user: userName, subtitle: role),
+                HeaderCard(user: userName, subtitle: role, location: location),
                 const SizedBox(height: 15),
 
-                // Chargements
                 InkWell(
                   onTap: () {
                     Navigator.pushNamed(context, RouteConstants.loadingList);
@@ -60,7 +59,6 @@ class PrestataireDashboard extends StatelessWidget {
                 ),
                 const SizedBox(height: 15),
 
-                // Déchargements
                 InkWell(
                   onTap: () {
                     Navigator.pushNamed(context, RouteConstants.unloadingList);
@@ -70,9 +68,7 @@ class PrestataireDashboard extends StatelessWidget {
                     subtitle: "Liste des déchargements",
                     icon: Icons.download,
                     iconColor: Colors.white,
-                    cardColor: const Color(
-                      0xFFE5BE01,
-                    ), // Gold color probably suitable
+                    cardColor: const Color(0xFFE5BE01),
                     isTrailing: true,
                     titleStyle: GoogleFonts.poppins(
                       fontSize: 14,

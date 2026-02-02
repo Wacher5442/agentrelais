@@ -2,7 +2,15 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 
 class CustomCameraPage extends StatefulWidget {
-  const CustomCameraPage({super.key});
+  final double rectWidthRatio;
+  final double rectHeightRatio;
+  final double borderRadius;
+  const CustomCameraPage({
+    super.key,
+    this.rectWidthRatio = 0.85,
+    this.rectHeightRatio = 0.75,
+    this.borderRadius = 16,
+  });
 
   @override
   State<CustomCameraPage> createState() => _CustomCameraPageState();
@@ -54,8 +62,13 @@ class _CustomCameraPageState extends State<CustomCameraPage> {
         children: [
           CameraPreview(_controller!),
           // On applique notre calque de guidage
-          CustomPaint(painter: CameraOverlayPainter()),
-          // Bouton de capture
+          CustomPaint(
+            painter: CameraOverlayPainter(
+              rectWidthRatio: widget.rectWidthRatio,
+              rectHeightRatio: widget.rectHeightRatio,
+              borderRadius: widget.borderRadius,
+            ),
+          ),
           Positioned(
             bottom: 50,
             left: 0,
@@ -78,42 +91,57 @@ class _CustomCameraPageState extends State<CustomCameraPage> {
 }
 
 class CameraOverlayPainter extends CustomPainter {
+  final double rectWidthRatio;
+  final double rectHeightRatio;
+  final double borderRadius;
+
+  CameraOverlayPainter({
+    required this.rectWidthRatio,
+    required this.rectHeightRatio,
+    this.borderRadius = 12,
+  });
+
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = Colors.black54; // Fond semi-transparent
+    final paint = Paint()..color = Colors.black54;
 
-    // Création du rectangle de guidage
-    final rectWidth = size.width * 0.95;
-    final rectHeight = size.height * 0.85;
+    final rectWidth = size.width * rectWidthRatio;
+    final rectHeight = size.height * rectHeightRatio;
+
     final rect = Rect.fromCenter(
       center: Offset(size.width / 2, size.height / 2),
       width: rectWidth,
       height: rectHeight,
     );
 
-    // Dessiner l'overlay avec un trou au milieu (le cadre)
+    // Overlay avec trou
     canvas.drawPath(
       Path.combine(
         PathOperation.difference,
         Path()..addRect(Rect.fromLTWH(0, 0, size.width, size.height)),
-        Path()
-          ..addRRect(RRect.fromRectAndRadius(rect, const Radius.circular(12))),
+        Path()..addRRect(
+          RRect.fromRectAndRadius(rect, Radius.circular(borderRadius)),
+        ),
       ),
       paint,
     );
 
-    // Dessiner la bordure du cadre
+    // Bordure
     final borderPaint = Paint()
       ..color = Colors.white
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.0;
+      ..strokeWidth = 3;
 
     canvas.drawRRect(
-      RRect.fromRectAndRadius(rect, const Radius.circular(12)),
+      RRect.fromRectAndRadius(rect, Radius.circular(borderRadius)),
       borderPaint,
     );
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant CameraOverlayPainter oldDelegate) {
+    return rectWidthRatio != oldDelegate.rectWidthRatio ||
+        rectHeightRatio != oldDelegate.rectHeightRatio ||
+        borderRadius != oldDelegate.borderRadius;
+  }
 }

@@ -1,6 +1,6 @@
 {
-    "name": "agent_relais",
-    "short_name": "agent_relais",
+    "name": "marakco",
+    "short_name": "marakco",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

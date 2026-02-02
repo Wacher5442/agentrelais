@@ -59,7 +59,6 @@ class HomeLocalDataSourceImpl implements IHomeLocalDataSource {
 
     // Gérer la recherche
     if (search != null && search.isNotEmpty) {
-      // CORRIGÉ: Utilise les clés JSON standardisées
       whereClauses.add('(fieldsJson LIKE ? OR fieldsJson LIKE ?)');
       whereArgs.add('%"nomProducteur":"%$search%');
       whereArgs.add('%"numeroRecu":"%$search%');
@@ -73,7 +72,7 @@ class HomeLocalDataSourceImpl implements IHomeLocalDataSource {
       'receipts',
       where: whereStatement,
       whereArgs: whereArgs,
-      orderBy: 'createdAt DESC', // Les plus récents en premier
+      orderBy: 'createdAt DESC',
     );
 
     // Convertir les Map de la DB en objets Recu
@@ -81,10 +80,8 @@ class HomeLocalDataSourceImpl implements IHomeLocalDataSource {
       final fieldsJson = row['fieldsJson'] as String? ?? '{}';
       final Map<String, dynamic> jsonData = jsonDecode(fieldsJson);
 
-      // Ajoute le statut et l'image du 'row' principal
       jsonData['status'] = row['status'];
-      jsonData['image'] =
-          row['photoPath']; // Assumant que Recu.fromJson gère 'image'
+      jsonData['image'] = row['photoPath'];
 
       return Recu.fromJson(jsonData);
     }).toList();

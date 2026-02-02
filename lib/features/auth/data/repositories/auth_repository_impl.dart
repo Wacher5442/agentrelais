@@ -41,13 +41,13 @@ class AuthRepositoryImpl implements AuthRepository {
         try {
           final profileData = await remoteDataSource.getProfile();
 
-          // 3. FUSION : On garde les rôles de 'userWithRoles' mais on prend
+          // 3. On garde les rôles de 'userWithRoles' mais on prend
           // le matricule et le lieu de travail de 'profileData'
           final finalUser = userWithRoles.copyWith(
             agentCode: profileData.agentCode,
             placeOfWork: profileData.placeOfWork,
-            firstName: profileData.firstName, // si présent dans profil
-            lastName: profileData.lastName, // si présent dans profil
+            firstName: profileData.firstName,
+            lastName: profileData.lastName,
           );
 
           await localDataSource.cacheUser(finalUser);
@@ -135,29 +135,29 @@ class AuthRepositoryImpl implements AuthRepository {
 
   // --- Dynamic Commodity & Campaign Management ---
 
-  // @override
-  // Future<Either<Failure, List<CommodityEntity>>>
-  // fetchAndStoreCommodities() async {
-  //   if (await networkInfo.isConnected) {
-  //     try {
-  //       final commodities = await remoteDataSource.getCommodities();
-  //       await localDataSource.saveCommodities(commodities);
-  //       return Right(commodities);
-  //     } on ServerException catch (e) {
-  //       return Left(ServerFailure(e.message));
-  //     } catch (e) {
-  //       return Left(ServerFailure(e.toString()));
-  //     }
-  //   } else {
-  //     // Return cached if offline
-  //     try {
-  //       final local = await localDataSource.getCommodities();
-  //       return Right(local);
-  //     } catch (e) {
-  //       return Left(CacheFailure("Failed to load cached commodities"));
-  //     }
-  //   }
-  // }
+  @override
+  Future<Either<Failure, List<CommodityEntity>>>
+  fetchAndStoreCommodities() async {
+    if (await networkInfo.isConnected) {
+      try {
+        final commodities = await remoteDataSource.getCommodities();
+        await localDataSource.saveCommodities(commodities);
+        return Right(commodities);
+      } on ServerException catch (e) {
+        return Left(ServerFailure(e.message));
+      } catch (e) {
+        return Left(ServerFailure(e.toString()));
+      }
+    } else {
+      // Return cached if offline
+      try {
+        final local = await localDataSource.getCommodities();
+        return Right(local);
+      } catch (e) {
+        return Left(CacheFailure("Failed to load cached commodities"));
+      }
+    }
+  }
 
   @override
   Future<Either<Failure, List<CampaignEntity>>>
@@ -186,7 +186,7 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, String>> getActiveCommodityCode() async {
     try {
-      // Logic: Preference > Default "ANACARDE"
+      // Logic: Preference : Default "ANACARDE"
       final selected = await localDataSource.getSelectedCommodity();
       return Right(selected ?? "ANACARDE");
     } catch (e) {
@@ -197,16 +197,15 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, CampaignEntity?>> getActiveCampaign() async {
     try {
-      // final commodityCodeResult = await getActiveCommodityCode();
-      // return await commodityCodeResult.fold((failure) async => Left(failure), (
-      //   code,
-      // ) async {
-
-      // });
-      final campaign = await localDataSource.getActiveCampaignForCommodity(
-        DEFAULT_COMMODITY_CODE,
-      );
-      return Right(campaign);
+      final commodityCodeResult = await getActiveCommodityCode();
+      return await commodityCodeResult.fold((failure) async => Left(failure), (
+        code,
+      ) async {
+        final campaign = await localDataSource.getActiveCampaignForCommodity(
+          code,
+        );
+        return Right(campaign);
+      });
     } catch (e) {
       return Left(CacheFailure("Failed to get active campaign: $e"));
     }

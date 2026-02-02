@@ -35,7 +35,7 @@ class LoadingDetailPage extends StatelessWidget {
     final dioClient = DioClient(
       baseUrl:
           dotenv.env['BASE_URL_TRANSFERT'] ??
-          'https://maracko-backend.dev.go.incubtek.com/commodities',
+          'https://maracko-backend.cca.go.incubtek.com/commodities',
       accessTokenGetter: authLocalDs.getAccessToken,
     );
     final remoteDataSource = ChargementRemoteDataSource(dioClient);
@@ -202,7 +202,7 @@ class _LoadingDetailViewState extends State<_LoadingDetailView> {
               if (_currentChargement.image != null) const SizedBox(height: 16),
               if (_receipts.isNotEmpty || _isLoadingReceipts)
                 _buildReceiptsSection(),
-              const SizedBox(height: 80), // Space for FAB
+              const SizedBox(height: 80),
             ],
           ),
         ),
@@ -286,7 +286,6 @@ class _LoadingDetailViewState extends State<_LoadingDetailView> {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
           children: [
-            // Bouton de rejet/retour
             Expanded(
               child: FloatingActionButton.extended(
                 heroTag: "reject_btn",
@@ -305,7 +304,6 @@ class _LoadingDetailViewState extends State<_LoadingDetailView> {
             ),
             const SizedBox(width: 10),
 
-            // Bouton de déchargement normal
             Expanded(
               child: FloatingActionButton.extended(
                 heroTag: "unload_btn",
@@ -435,11 +433,9 @@ class _LoadingDetailViewState extends State<_LoadingDetailView> {
                 );
 
                 Navigator.pop(dialogContext);
-                // 1. Mettre à jour les données (humidité/obs)
                 context.read<LoadingBloc>().add(
                   UpdateLoadingDetailsEvent(updatedEntity),
                 );
-                // 2. Changer le statut
                 context.read<LoadingBloc>().add(
                   UpdateLoadingStatusEvent(updatedEntity, selectedStatus),
                 );
@@ -671,7 +667,6 @@ class _LoadingDetailViewState extends State<_LoadingDetailView> {
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () {
-                          // Validate form before submission
                           if (!formKey.currentState!.validate()) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
@@ -834,7 +829,6 @@ class _LoadingDetailViewState extends State<_LoadingDetailView> {
     );
   }
 
-  // Build sections (keeping existing methods)
   Widget _buildGeneralInfo() {
     if (_currentChargement.date == null &&
         _currentChargement.sticker == null &&
@@ -1005,7 +999,7 @@ class _LoadingDetailViewState extends State<_LoadingDetailView> {
             tag:
                 'receipt_${_currentChargement.numeroFiche}-${_currentChargement.image}',
             imagePath:
-                "https://s3.dev.go.incubtek.com/proof/${_currentChargement.image}",
+                "https://s3.cca.go.incubtek.com/proof/${_currentChargement.image}",
             borderRadius: 10,
           ),
         ),
@@ -1052,7 +1046,7 @@ class _LoadingDetailViewState extends State<_LoadingDetailView> {
                     child: ClipRRectImage(
                       tag: 'receipt_${receipt.numeroRecu}-${receipt.image}',
                       imagePath:
-                          "https://s3.dev.go.incubtek.com/proof/${receipt.image}",
+                          "https://s3.cca.go.incubtek.com/proof/${receipt.image}",
                       borderRadius: 10,
                     ),
                   )

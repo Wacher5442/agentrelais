@@ -25,7 +25,6 @@ class ReceiptRepositoryImpl implements ReceiptRepository {
   Future<SubmissionResult> submitReceipt(ReceiptEntity receipt) async {
     final now = DateTime.now().millisecondsSinceEpoch;
 
-    // Créer le bundle_id (numeroRecu + numeroRecu pour l'exemple)
     final bundleId = '${receipt.numeroRecu}${receipt.numeroRecu}';
 
     // 1. Sauvegarder en local avec statut 'draft'

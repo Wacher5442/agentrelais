@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "agent_relais" "\0"
+            VALUE "FileDescription", "marakco" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "agent_relais" "\0"
+            VALUE "InternalName", "marakco" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2025 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "agent_relais.exe" "\0"
-            VALUE "ProductName", "agent_relais" "\0"
+            VALUE "OriginalFilename", "marakco.exe" "\0"
+            VALUE "ProductName", "marakco" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

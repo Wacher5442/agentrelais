@@ -5,10 +5,8 @@ abstract class TransfertListEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Événement pour charger (ou recharger) la liste des transferts depuis la BDD
 class LoadTransfertsEvent extends TransfertListEvent {}
 
-/// (Optionnel) Événement pour filtrer la liste localement dans le BLoC
 class FilterTransfertsEvent extends TransfertListEvent {
   final String? type;
   final String? status;

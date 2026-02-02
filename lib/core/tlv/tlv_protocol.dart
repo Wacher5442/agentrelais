@@ -1,11 +1,9 @@
-// lib/core/tlv/tlv_protocol.dart
 import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:base32/base32.dart';
 import 'package:uuid/uuid.dart';
 
-// 1. Enum d'encodage UNIFIÉ
 enum TlvEncoderType { base64Url, base32 }
 
 class TlvField {
@@ -26,7 +24,7 @@ Uint8List buildTlvPayload(List<TlvField> fields) {
   final builder = BytesBuilder();
   for (final f in fields) {
     if (f.value.length > 255) {
-      // Sécurité : le protocole L (Length) est sur 1 octet
+      // le protocole L (Length) est sur 1 octet
       throw Exception(
         "Champ TLV (type=${f.type}) trop long: ${f.value.length} octets",
       );

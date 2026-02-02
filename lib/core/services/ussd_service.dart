@@ -29,7 +29,7 @@ class UssdService {
     return null;
   }
 
-  // Vérifier et demander les permissions (maintenant publique)
+  // Vérifier et demander les permissions
   static Future<bool> checkAndRequestPermissions() async {
     // Vérifier d'abord si on a déjà la permission
     var status = await Permission.phone.status;

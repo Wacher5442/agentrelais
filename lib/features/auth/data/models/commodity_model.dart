@@ -11,7 +11,7 @@ class CommodityModel extends CommodityEntity {
   factory CommodityModel.fromJson(Map<String, dynamic> json) {
     return CommodityModel(
       id: json['id'] ?? '',
-      name: json['name'] ?? '',
+      name: json['label'] ?? '',
       code: json['code'] ?? '',
       isActive: json['is_active'] ?? true,
     );

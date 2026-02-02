@@ -4,15 +4,15 @@ import 'receipt_entity.dart';
 
 class TransfertEntity extends Equatable {
   final int? id;
-  final String numeroFiche; // Now required, primary identifier
+  final String numeroFiche;
   final int formId;
   final String status;
   final String submissionMethod;
   final int createdAt;
   final int updatedAt;
-  final String username; // Replaced agentId
-  final String bundleId; // Concatenation of receipt numbers
-  final String campagne; // Dynamic campaign period
+  final String username;
+  final String bundleId;
+  final String campagne;
 
   // Champs Métiers
   final String? typeTransfert;
@@ -42,9 +42,8 @@ class TransfertEntity extends Equatable {
   final String? permisConduire;
   final String? prix;
   final List<ReceiptEntity> receipts;
-  final String? image; // Renamed from photoFiche
+  final String? image;
 
-  // Configuration pour l'envoi partiel USSD
   final List<String>? ussdFields;
 
   const TransfertEntity({
